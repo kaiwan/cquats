@@ -1,3 +1,13 @@
+*~
+kbuild/.config*
+.*.swp
+*.o
+log*
+perf.data*
+.scratch_cquats/*
+reports/*
+
+####### template follows:
 # Prerequisites
 *.d
 
