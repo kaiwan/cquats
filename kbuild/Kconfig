@@ -1,0 +1,245 @@
+#
+# Kconfig [for CQuATS]
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+mainmenu "CQuATS Configuration"
+
+#======================================================================
+menu "CQuATS Configuration"
+
+  #config CQUATS_SCRATCH_FOLDER
+#	string "Location of the 'scratch' / temp folder"
+#	default ".scratch_cquats"
+#	help
+#	  Folder where temporary files, builds, etc are kept.
+#	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+  config CQUATS_REPORTS_FOLDER
+	string "Location of the 'reports' folder"
+	default "reports"
+	help
+	  Folder where report files will be stored. For eg., the report generated
+	  by the Perf cpu profiling utility.
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+  config CQUATS_RUNCMD_PFX_UTIL
+	string "Utility to prefix to the 'run command' [default: time]"
+	default "time"
+	help
+	  Utility to prefix to the 'run command' [default: time]. 
+	  Another could be perf; for eg.
+	  'perf stat' .
+
+  config CQUATS_RUNCMD_PFX_UTIL_ARGS
+	string "Arguments to the utility to prefix to the 'run command'"
+	help
+	  Arguments to pass to the utility to prefix to the 'run command' (above) [default: time].
+	  Another could be args for perf; for eg.
+	  ('perf stat' with) args '--scale -d --big-num' .
+
+endmenu
+#======================================================================
+menu "Userland Tools"
+
+  config TARGET_SRC_STATIC
+	string "Location of source tree target"
+	help
+	  This is the source tree which will be parsed by the static analysis and
+	  (some of) the infosec tools. It need not only be the root folder of the
+	  codebase; it could be a sub-folder too..
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+ #======================================================================
+ menu "Static Analysis Tools"
+
+  config COCCINELLE
+	bool "Static Analysis: Coccinelle" #if KERNEL_SRC != NULL
+	default n
+	help
+	  Invoke the Coccinelle static analyser on the selected codebase.
+	  Note that Coccinelle will only be able to parse 'C' (and .h) files.
+
+   config COCCINELLE_VERBOSE
+	bool "Run the Coccinelle script in Verbose mode"
+	default n
+	depends on COCCINELLE
+	help
+	  Displays the particular '.cocci' script that's executing on the given codebase.
+
+ config SPARSE
+	bool "Static Analysis: Sparse"
+	default n
+	help
+	  Invoke the sparse static analyser on the selected codebase.
+
+ endmenu  # Static Analysis Tools
+ #======================================================================
+
+ menu "Dynamic Analysis Tools | Valgrind Suite"
+
+ choice VALGRIND_VIA
+    bool "Invoke Valgrind via CQuATS or existing Script"
+	default VALGRIND_VIA_CQUATS
+
+   config VALGRIND_VIA_CQUATS
+	 bool "Run valgrind via CQuATS on a given app"
+
+   config VALGRIND_VIA_SCRIPT
+	 bool "Run valgrind via an existing Script"
+ endchoice
+
+    config VALGRIND_TARGET_APP
+	depends on VALGRIND_VIA_CQUATS
+	 string "Enter pathname (and params), of the target application being checked"
+	 help
+	  This is the target app with all parameters as required, that will be analysed
+	  by the Valgrind tool(s).
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+    config VALGRIND_TARGET_SCRIPT
+	depends on VALGRIND_VIA_SCRIPT
+	 string "Enter pathname to the script that will invoke Valgrind (etc)"
+	 help
+	  This is the (already existing) script. Often, the project might already have
+	  some pre-existing script(s) that will invoke the required valgrind (etc) test
+	  cases. If this is the case, specify the full pathname (and any parameters) to
+	  that script here, else ignore this option.
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+    config VALGRIND_MEMCHECK_OPTS
+	depends on VALGRIND_VIA_CQUATS
+	string "Valgrind / Memcheck tool : Option switches"
+	default "--trace-children=yes --time-stamp=yes --errors-for-leak-kinds=definite"
+	help
+	  Option switches for Valgrind Memcheck.
+
+    config VALGRIND_MEMCHECK
+ 	 bool "Dynamic Analysis: Valgrind : MemCheck Tool"
+ 	 default n
+	 help
+	  Invoke the Valgrind:memcheck dynamic memory analyser on the selected app.
+
+    config VALGRIND_HELGRIND
+ 	 bool "Dynamic Analysis: Valgrind : Helgrind Tool"
+	 default n
+	 help
+	  Invoke the Valgrind:helgrind dynamic memory analyser for data races on
+	  multithreaded - on the selected app.
+
+    config VALGRIND_CACHEGRIND
+	 bool "Dynamic Analysis: Valgrind : Cachegrind Tool"
+	 default n
+	 help
+	  Invoke the Valgrind:cachegrind dynamic cache memory usage profiler
+	  on the selected app.
+
+    config VALGRIND_CALLGRIND
+ 	 bool "Dynamic Analysis: Valgrind : Callgrind Tool"
+	 default n
+	 help
+	  Invoke the Valgrind:callgrind dynamic profiler on the selected app.
+
+ endmenu  # Dynamic Analysis Tools
+ #======================================================================
+
+ #======================================================================
+ menu "Profiling"
+
+    config PERF
+ 	 bool "Dynamic Profiling: Perf record & report"
+ 	 default n
+	 help
+	  Invoke the Perf 'record & report' porfiler on the selected app or script.
+
+ #menu "Profiling with Perf"
+ choice PERF_VIA
+ depends on PERF
+    bool "Run Perf via CQuATS or existing Script"
+	default PERF_VIA_CQUATS
+
+   config PERF_VIA_CQUATS
+	 bool "Run Perf via CQuATS on a given app"
+
+   config PERF_VIA_SCRIPT
+	 bool "Run Perf via an existing Script"
+ endchoice
+
+    config PERF_TARGET_APP
+	depends on PERF_VIA_CQUATS
+	 string "Enter pathname (and params), of the target application being profiled"
+	 help
+	  This is the target app with all parameters as required, that will be profiled
+	  by the Perf tool(s).
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+    config PERF_TARGET_SCRIPT
+	depends on PERF_VIA_SCRIPT
+	 string "Enter pathname to the script that will invoke Perf (etc)"
+	 help
+	  This is the (already existing) script. Often, the project might already have
+	  some pre-existing script(s) that will invoke the required Perf (etc)
+	  profiling.  If this is the case, specify the full pathname (and any
+	  parameters) to that script here, else ignore this option.
+	  TIP: do Not use metacharacters (like '~') in the pathname!
+
+    config PERF_RECORD_OPTS
+	depends on PERF_VIA_CQUATS
+	string "perf record : Option switches"
+	default "-F 512 --call-graph dwarf -s -T"
+	help
+	  Option switches for Perf record. Tuned to record for a given PID;
+	  use '-a' to record system-wide.
+
+    config PERF_RECORD_FILE
+	depends on PERF_VIA_CQUATS
+	string "perf record output filename"
+	default "perf.data"
+	help
+	  Specify the pathname to the output file for 'perf record'.
+
+    config PERF_REPORT_OPTS
+	depends on PERF_VIA_CQUATS
+	string "perf report : Option switches"
+	default "--stdio -T"
+	help
+	  Option switches for Perf report.
+
+    config PERF_REPORT_FILE
+	depends on PERF_VIA_CQUATS
+	string "perf report output filename"
+	default "perf_report.txt"
+	help
+	  Specify the pathname to the output file for 'perf report'.
+  #endmenu    # Perf
+
+endmenu    # Profiling
+
+
+ #======================================================================
+ menu "InfoSec - Security Analysers"
+
+   config FLAWFINDER
+	bool "InfoSec: FlawFinder"
+	default n
+	help
+	  Invoke the FlawFinder static analyser for security issues on the selected codebase.
+	  Flawfinder examines C/C++ source code for security flaws.
+
+    config FLAWFINDER_OPTS
+	depends on FLAWFINDER
+	string "Flawfinder : Option switches"
+	default "--context --minlevel=2 --falsepositive"
+	help
+	  Option switches for the Flawfinder utility.
+
+#   config CHECKSEC
+#	bool "InfoSec: the checksec.sh script"
+#	default n
+#	help
+#	  Invoke the checksec bash script on the selected codebase.
+
+ endmenu  # InfoSec
+ #======================================================================
+
+endmenu  # top-level

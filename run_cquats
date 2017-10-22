@@ -1,0 +1,775 @@
+#!/bin/bash
+# cquats.sh
+# 
+# Quick Description:
+# CQuATS - C QA ToolSet project
+#
+# CQuATS is a management system that aims to collect heterogenous code safety
+# and security analysers/tools, bringing them together into a coherent,
+# easy-to-use system.
+# Categories:
+# 
+#   Static Analysers
+#   Dynamic Analysers
+#   Profilers
+#   Security
+# 
+# The menu system is completely based on the opensource Kbuild system;
+# initial template sourced from here:
+#  https://github.com/masahir0y/kbuild_skeleton
+#
+# Last Updated :
+# Created      : 19Sep2017
+# 
+# Author:
+# Kaiwan N Billimoria
+# kaiwan -at- kaiwantech -dot- com
+# kaiwanTECH
+# 
+# License:
+# MIT License.
+# 
+name=$(basename $0)
+
+########## Source files ############################
+PFX=$(dirname `which $0`)
+source ${PFX}/common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
+ [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+source ${PFX}/cquats_common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
+ [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+
+########### Functions follow #######################
+
+#---
+# We require a 'n'-d (n=7) array: each 'row' will hold the complete details
+# of a tool to run:
+#          col0   col1   col2    col3      col4          col5           col6
+# row'n' [space],[type],[suite],[tool],[tool-desc],[path-to-tool],[parameters-to-tool]
+#
+# HOWEVER, bash only actually supports 1d array; we thus treat a simple 1d
+# array as an 'n'd (n=7) array!
+# So we just populate a 1d array like this:
+#  [val1] [val2] [val3] [val4] [val5] [val6] [val7] [val8] [...]
+# but INTERPRET it as 7d like so:
+#  ([val0],[val1],[val2],[val3],[val4],[val5],[val6]),
+#  ([val7],[val8],[val9],[val10],[val11],[val12],[val13]), [...]
+#
+# Each 'row' will hold the complete details of a tool to run:
+#          col0   col1   col2    col3      col4          col5           col6
+# row'n' [space],[type],[suite],[tool],[tool-desc],[path-to-tool],[parameters-to-tool]
+#     [0] space     : user-land|kernel-land
+#     [1] type      : static|dynamic
+#     [2] suite     : eg. valgrind|perf|...
+#     [3] tool      : <name of the particular tool>
+#     [4] tool-desc : <optional description of the particular tool>
+#     [5] tool-path : <pathname-to-invoke-tool>; under tools/ folder
+#     [6] params    : parameter(s) to the particular tool being invoked
+declare -a gCmdArray
+gDim=7
+gRow=0
+#---
+
+#----------------------- s h o w C m d A r r a y -----------------------
+# Iterate over the global 'command' array, 'n'-'columns' (n=7) at a time
+# in order to process a "row".
+# Here, we just printf() the content..
+showCmdArray()
+{
+local i k
+echo
+decho "gRow = ${gRow}"
+for ((i=0; i<${gRow}; i+=${gDim}))
+do
+    printf "[%s, " "${gCmdArray[${i}]}"
+	let k=i+1
+    printf "%s, " "${gCmdArray[${k}]}"
+	let k=i+2
+    printf "%s, " "${gCmdArray[${k}]}"
+	let k=i+3
+    printf "%s, " "${gCmdArray[${k}]}"
+	let k=i+4
+    printf "%s, " "${gCmdArray[${k}]}"
+	let k=i+5
+    printf "%s, " "${gCmdArray[${k}]}"
+	let k=i+6
+    printf "%s]\n" "${gCmdArray[${k}]}"
+done
+} # end showCmdArray()
+
+#------- s h o w E x e c u t i o n M a t r i x ------------------------
+showExecutionMatrix()
+{
+report_progress
+local i k c=1
+local HDR="
++-----------------------------------------------------------------------------------------+
++    Space      Type    Suite   ToolName          Description              Run-Command    +
++-----------------------------------------------------------------------------------------+"
+aecho "Execution Matrix"
+iecho "${HDR}"
+local sep=","
+
+#decho "gRow = ${gRow}"
+for ((i=0; i<${gRow}; i+=${gDim}))
+do
+	printf "%2d. " $c
+    printf "%9s%c" "${gCmdArray[${i}]}" "${sep}"
+	let k=i+1
+    printf "%7s%c" "${gCmdArray[${k}]}" "${sep}"
+	let k=i+2
+    printf "%-8s%c" "${gCmdArray[${k}]}" "${sep}"
+	let k=i+3
+    printf "%-10s%c" "${gCmdArray[${k}]}" "${sep}"
+	let k=i+4
+    printf "%-25s%c" "${gCmdArray[${k}]}" "${sep}"
+	let k=i+5
+    printf "%s " "${gCmdArray[${k}]}" # "${sep}"
+	let k=i+6
+    printf "%s\n" "${gCmdArray[${k}]}"
+	let c=c+1
+done |tee -a ${LOGFILE_COMMON}
+echo "+-----------------------------------------------------------------------------------------+"
+} # end showExecutionMatrix
+
+#----- c h e c k _ i f _ c o n f  i g _ f o o _ s e t -----------------
+# Check if the CONFIG_FOO passed is set.
+# Parameter:
+#  $1 = the CONFIG_FOO macro to check
+# As it checks for 'CONFIG_FOO=y', pl ensure you pass only macros of
+# type 'bool'.
+# Returns :
+#  0 => 'success' => CONFIG_FOO is indeed defined
+#  1 => 'failure' => CONFIG_FOO is Not defined or is missing/invalid.
+check_if_config_foo_set()
+{
+[ $# -ne 1 ] && return 9
+echo "$1" |grep -q "^CONFIG_" || return 1
+local rec=$(grep -w "$1" ${gTMPF_CONFIG})
+[ -z "${rec}" ] && return 1
+local REQD=$(echo "${rec}" |cut -d"=" -f2)
+[ "${REQD}"="y" ] && return 0 || return 1
+} # end check_if_config_foo_set()
+
+#----- c h e c k _ c o n f i g _ f o o _ g e t _ r e t v a l ----
+# Check if the CONFIG_FOO passed is set.
+# Parameter:
+#  $1 = the CONFIG_FOO macro to check
+# As it checks for 'CONFIG_FOO=y', pl ensure you pass only macros of
+# type 'bool'.
+# Returns :
+# via an 'echo' so CAREFUL, don't echo anything else n this function!!!
+#  "..." : value of CONFIG_FOO, i.e., the VAL in CONFIG_FOO=VAL
+check_config_foo_get_retval()
+{
+[ $# -ne 1 ] && echo ""
+echo "$1" |grep -q "^CONFIG_" || echo ""
+local rec=$(grep -w "$1" ${gTMPF_CONFIG})
+[ -z "${rec}" ] || echo ""
+local RETVAL=$(echo -n "${rec}" |cut -d"=" -f2- |tr '\n' '\0')
+	# TODO : newline '\n' still embedded inside RETVAL ??
+echo -n "${RETVAL}"
+} 2>/dev/null # end check_config_foo_get_retval()
+
+
+#------- p e r f _ c h e c k _ p r o c _ s e t t i n g s --------------
+perf_check_proc_settings()
+{
+local val=$(cat /proc/sys/kernel/perf_event_paranoid)
+[ ${val} -gt 0 ] && {
+  wecho "[!] perf: !Warning! value of kernel tunable /proc/sys/kernel/perf_event_paranoid is ${val}; should ideally be -1"
+}
+local val=$(cat /proc/sys/kernel/kptr_restrict)
+[ ${val} -eq 1 ] && {
+  wecho "[!] perf: !Warning! value of kernel tunable /proc/sys/kernel/kptr_restrict is ${val}; should ideally be 0"
+}
+} # end perf_check_proc_settings()
+
+#--------------- b u i l d _ c m d ------------------------------------
+# We just grep for the presence of CONFIG_FOO in the temp config file to
+# determine whether we proceed to process that command; this works out
+# as the CONFIG_FOO is only present for the 'Y' case...
+#
+# Parse them, update FOO_REQD:
+#  FOO_REQD=y  =>  run FOO
+#  FOO_REQD!=y  =>  don't run FOO
+#
+#--- Populate the global "command" array ('7'-d)
+# Each 'row' will hold the complete details of a tool to run:
+#          col0   col1   col2    col3      col4          col5           col6
+# row'n' [space],[type],[suite],[tool],[tool-desc],[path-to-tool],[parameters-to-tool]
+#     [0] space     : user-land|kernel-land
+#     [1] type      : static|dynamic
+#     [2] suite     : eg. valgrind|perf|...
+#     [3] tool      : <name of the particular tool>
+#     [4] tool-desc : <optional description of the particular tool>
+#     [5] tool-path : <pathname-to-invoke-tool>; under tools/ folder
+#     [6] params    : parameter(s) to the particular tool being invoked
+build_cmd()
+{
+report_progress
+[ ! -f ${gTMPF_CONFIG} ] && FatalError "Pl report this bug: tmp Config file \
+\"${gTMPF_CONFIG}\" missing!"
+
+	#declare -t rec srctree
+	#trap "echo var rec=${rec} srctree=${srctree}" DEBUG
+
+
+################################## Template ########################
+#--- Category1:User|Kernel / Category2 / Cat3:Suite / Cat4:ToolName
+#Eg. --- Userland / Security / - / flawfinder
+#check_if_config_foo_set CONFIG_FOO # ret 0 if CONFIG_FOO is set
+##echo "ret=${?}"
+#if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+#
+#  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+#  do
+#
+#	local tmp=$(check_config_foo_get_retval CONFIG_FOO2)
+#	local whatever=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+#   [...]
+
+#	if [ -z "${srctree}" ] ; then
+#	  wecho "${name}: sparse: target source tree undefined (null)! aborting run ..."
+#	  break
+#	fi
+
+#   # Setup the command array for this tool
+# Each 'row' will hold the complete details of a tool to run:
+#          col0   col1   col2    col3      col4          col5           col6
+# row'n' [space],[type],[suite],[tool],[tool-desc],[path-to-tool],[parameters-to-tool]
+#     [0] space     : user-land|kernel-land
+#     [1] type      : static|dynamic
+#     [2] suite     : eg. valgrind|perf|...
+#     [3] tool      : <name of the particular tool>
+#     [4] tool-desc : <optional description of the particular tool>
+#     [5] tool-path : <pathname-to-invoke-tool>; under tools/ folder
+#     [6] params    : parameter(s) to the particular tool being invoked
+#	gCmdArray[${gRow}]="user-land"                                           # [0]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="static"                                              # [1]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="-na-"                                                # [2]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="sparse"                                              # [3]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="Sparse static analyser"                              # [4]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="${TOOLS_STATIC}/sparse"                              # [5]
+#	let gRow=gRow+1
+#	gCmdArray[${gRow}]="${gTARGET_SRC_STATIC}"                               # [6]
+#	let gRow=gRow+1
+
+#  done
+#fi
+################################## Template ########################
+
+
+
+##############--- Userland / Static / -na- / coccinelle
+check_if_config_foo_set CONFIG_COCCINELLE # ret 0 if CONFIG_FOO is set
+#echo "ret=${?}"
+if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+
+  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  do
+	local srctree
+
+	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
+	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	if [ -z "${srctree}" ] ; then
+	  wecho "[!] ${name}: coccinelle: target source tree undefined (null)! aborting run ..."
+	  break
+	fi
+
+	local tmp=$(check_config_foo_get_retval CONFIG_COCCINELLE_VERBOSE)
+	local cocciVerbose=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+
+#   # Setup the command array for this tool
+	gCmdArray[${gRow}]="user-land"                                           # [0]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="static"                                              # [1]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="-na-"                                                # [2]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="coccinelle"                                          # [3]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Coccinelle static analyser"                          # [4]
+	let gRow=gRow+1
+	[ "${cocciVerbose}" = "y" ] && {
+		gCmdArray[${gRow}]="V=1 ${TOOLS_STATIC}/coccinelle/coccichk"         # [5]
+	} || {
+		gCmdArray[${gRow}]="${TOOLS_STATIC}/coccinelle/coccichk"
+	}
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="${srctree}"                                          # [6]
+	let gRow=gRow+1
+  done
+fi
+
+##############--- Userland / Static / -na- / sparse
+check_if_config_foo_set CONFIG_SPARSE # ret 0 if CONFIG_FOO is set
+#echo "ret=${?}"
+if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  do
+	local srctree
+	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
+	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+
+	if [ -z "${srctree}" ] ; then
+	  wecho "[!] ${name}: sparse: target source tree undefined (null)! aborting run ..."
+	  break
+	fi
+
+#   # Setup the command array for this tool
+	gCmdArray[${gRow}]="user-land"                                           # [0]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="static"                                              # [1]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="-na-"                                                # [2]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="sparse"                                              # [3]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Sparse static analyser"                              # [4]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="${TOOLS_STATIC}/sparse"                              # [5]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="${gTARGET_SRC_STATIC}"                               # [6]
+	let gRow=gRow+1
+   done
+fi
+
+##############--- Userland / Dynamic / Valgrind / memcheck
+
+check_if_config_foo_set CONFIG_VALGRIND_MEMCHECK # ret 0 if CONFIG_FOO is set
+#echo "ret=${?}"
+if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+
+  local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_MEMCHECK_OPTS)
+  local vg_memcheck_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+  #decho "vg_memcheck_opts=${vg_memcheck_opts}"
+
+  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  do
+	local app script
+
+	# Invoke via CQuATS or external Script?
+	local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_VIA_CQUATS)
+	local vg_via_cquats=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	#Prompt "vg_via_cquats = $vg_via_cquats"
+	[ "${vg_via_cquats}" = "y" ] && {
+		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_APP)
+		local vg_target_app=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		#Prompt "vg_target_app = $vg_target_app"
+		[ -z "${vg_target_app}" ] && {
+		  wecho "[!] ${name}: valgrind:memcheck: target app undefined (null)! aborting run ..."
+		  break
+		}
+		local tapp=$(echo ${vg_target_app} |awk '{print $1}')
+		which ${tapp} >/dev/null || {
+		  wecho "[!] ${name}: valgrind:memcheck: target app \"${vg_target_app}\" missing? aborting run ..."
+		  break
+		}
+		decho "valgrind:memcheck: target app is \"${vg_target_app}\""
+	} || {   # via existing Script
+		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_SCRIPT)
+		local vg_target_script=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		[ -z "${vg_target_script}" ] && {
+		  wecho "[!] ${name}: valgrind:memcheck: target script undefined (null)! aborting run ..."
+		  break
+		}
+		[ ! -f "${vg_target_script}" ] && {
+		  wecho "[!] ${name}: valgrind:memcheck: target script \"${vg_target_script}\" missing? aborting run ..."
+		  break
+		}
+		decho "valgrind:memcheck: target script is \"${vg_target_script}\""
+	}
+
+    # Setup the command array for this tool
+	gCmdArray[${gRow}]="user-land"                                           # [0]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="dynamic"                                              # [1]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="valgrind"                                            # [2]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="memcheck"                                              # [3]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Valgrind memcheck dynamic analyser"                   # [4]
+	let gRow=gRow+1
+	[ ! -z "${vg_target_app}" ] && {
+		gCmdArray[${gRow}]="valgrind --tool=memcheck ${vg_memcheck_opts}"
+		let gRow=gRow+1
+		gCmdArray[${gRow}]="${vg_target_app}"                               # [5], # [6]
+	} || {
+		gCmdArray[${gRow}]="${vg_target_script}"                            # [5], # [6]
+		let gRow=gRow+1
+		gCmdArray[${gRow}]=""
+	}
+	let gRow=gRow+1
+  done
+fi
+
+
+
+
+
+
+##############--- Userland / Profiling / Perf / perf record & report
+
+check_if_config_foo_set CONFIG_PERF # ret 0 if CONFIG_FOO is set
+#echo "ret=${?}"
+if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+
+  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  do
+	local app script
+
+	# Invoke via CQuATS or external Script?
+	local tmp=$(check_config_foo_get_retval CONFIG_PERF_VIA_CQUATS)
+	local perf_via_cquats=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	#Prompt "perf_via_cquats = $perf_via_cquats"
+	[ "${perf_via_cquats}" = "y" ] && {
+		local tmp=$(check_config_foo_get_retval CONFIG_PERF_TARGET_APP)
+		local perf_target_app=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		#Prompt "perf_target_app = $perf_target_app"
+		[ -z "${perf_target_app}" ] && {
+		  wecho "[!] ${name}: perf: target app undefined (null)! aborting run ..."
+		  break
+		}
+		#local tapp=$(echo ${perf_target_app} |awk '{print $1}')
+		#which ${tapp} >/dev/null || 
+		[ -f "${perf_target_app}" ] || {
+		  wecho "[!] ${name}: perf: target app \"${perf_target_app}\" missing? aborting run ..."
+		  break
+		}
+		decho "perf: target app is \"${perf_target_app}\""
+
+		tmp=$(check_config_foo_get_retval CONFIG_PERF_RECORD_OPTS)
+		local perf_record_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		tmp=$(check_config_foo_get_retval CONFIG_PERF_RECORD_FILE)
+		local perf_record_file=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		tmp=$(check_config_foo_get_retval CONFIG_PERF_REPORT_OPTS)
+		local perf_report_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		tmp=$(check_config_foo_get_retval CONFIG_PERF_REPORT_FILE)
+		local perf_report_file=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local perf_report_path=${gCQUATS_REPORTS_FOLDER}/${perf_report_file}
+
+		perf_check_proc_settings
+
+		# Generate a script to run target app, do perf record and perf report
+#cat > /tmp/.cquats_perf << @EOF@
+local perfrun=${gCQUATS_SCRATCH_FOLDER}/.cquats.perf.sh
+cat > ${perfrun} << @EOF@
+#!/bin/bash
+# CQuATS - temp perf record & report script
+echo "[+] ${name}: userland|profiling|-|perf:${perfrun}"
+echo "[+]  running perf target app now within xterm"
+xterm -e ${perf_target_app} &
+sleep 0.5
+
+i=1
+while [ true ]
+do
+  tpid=\$(pidof -s ${perf_target_app})
+  [ ! -z "\${tpid}" ] && break
+  sleep 0.5
+  let i=i+1
+  [ $i -gt 5 ] && {
+    echo "[!]  Whoops, could NOT get process pid, aborting perf record run.."
+    exit1
+  }
+done
+
+echo "[+] running perf record on target app PID \${tpid} now"
+perf record -p \${tpid} ${perf_record_opts} --output=${perf_record_file}
+sleep 1
+echo "[+] writing perf report now into ${perf_report_path}"
+perf report ${perf_report_opts} --input=${perf_record_file} > ${perf_report_path} 2>&1
+ls -lh ${perf_report_path}
+exit 0
+# end
+@EOF@
+		chmod +x ${perfrun}
+	} || {   # via existing Script; we leave everything to the external script of course..
+		local tmp=$(check_config_foo_get_retval CONFIG_PERF_TARGET_SCRIPT)
+		local perf_target_script=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		[ -z "${perf_target_script}" ] && {
+		  wecho "[!] ${name}: perf: target script undefined (null)! aborting run ..."
+		  break
+		}
+		[ ! -f "${perf_target_script}" ] && {
+		  wecho "[!] ${name}: perf: target script \"${perf_target_script}\" missing? aborting run ..."
+		  break
+		}
+		decho "perf: target script is \"${perf_target_script}\""
+	}
+
+    # Setup the command array for this tool
+	gCmdArray[${gRow}]="user-land"                                           # [0]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="dynamic profiling"                                              # [1]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Perf"                                            # [2]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="perf"                                              # [3]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Perf dynamic CPU profiler"                   # [4]
+	let gRow=gRow+1
+	[ ! -z "${perf_target_app}" ] && {
+		gCmdArray[${gRow}]=${perfrun}
+		let gRow=gRow+1
+		gCmdArray[${gRow}]=""  #${perf_target_app}"                               # [5], # [6]
+	} || {   # via existing Script
+		gCmdArray[${gRow}]="${perf_target_script}"                            # [5], # [6]
+		let gRow=gRow+1
+		gCmdArray[${gRow}]=""
+	}
+	let gRow=gRow+1
+  done
+fi
+
+
+
+
+
+
+##############--- Userland / Security / - / flawfinder
+check_if_config_foo_set CONFIG_FLAWFINDER # ret 0 if CONFIG_FOO is set
+#echo "ret=${?}"
+if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
+
+  local tmp=$(check_config_foo_get_retval CONFIG_FLAWFINDER_OPTS)
+  local flawfinder_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+
+  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  do
+
+	# Invoke via CQuATS or Script?
+	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
+	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+
+   	if [ -z "${srctree}" ] ; then
+	  wecho "[!] ${name}: flawfinder: target source tree undefined (null)! aborting run ..."
+	  break
+	fi
+
+   # Setup the command array for this tool
+# Each 'row' will hold the complete details of a tool to run:
+#          col0   col1   col2    col3      col4          col5           col6
+# row'n' [space],[type],[suite],[tool],[tool-desc],[path-to-tool],[parameters-to-tool]
+#     [0] space     : user-land|kernel-land
+#     [1] type      : static|dynamic
+#     [2] suite     : eg. valgrind|perf|...
+#     [3] tool      : <name of the particular tool>
+#     [4] tool-desc : <optional description of the particular tool>
+#     [5] tool-path : <pathname-to-invoke-tool>; under tools/ folder
+#     [6] params    : parameter(s) to the particular tool being invoked
+	gCmdArray[${gRow}]="user-land"                                           # [0]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="static"                                              # [1]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="-na-"                                                # [2]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="flawfinder"                                          # [3]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="Flawfinder security static analyser"                 # [4]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="flawfinder"                                          # [5]
+	let gRow=gRow+1
+	gCmdArray[${gRow}]="${flawfinder_opts} ${srctree}"                       # [6]
+	let gRow=gRow+1
+
+  done
+fi
+
+
+[ ${DEBUG} -eq 1 ] && showCmdArray
+showExecutionMatrix
+
+} # end build_cmd()
+
+#-------------- r u n _ c m d -----------------------------------------
+# Iterate over the global 'command' array, 'n'-'columns' (n=7) at a time
+# in order to process a "row".
+# Here, we attempt to run the tool.
+# A 'row' of the global 'cmd' array:
+#     [0] space     : user-land|kernel-land
+#     [1] type      : static|dynamic
+#     [2] suite     : eg. valgrind|perf|...
+#     [3] tool      : <name of the particular tool>
+#     [4] tool-desc : <optional description of the particular tool>
+#     [5] tool-path : <pathname-to-invoke-tool>; under tools/ folder
+#     [6] params    : parameter(s) to the particular tool being invoked
+run_cmd()
+{
+report_progress
+local i k=0
+#decho "gRow = ${gRow}"
+
+#export gKERNEL_SRC_COCCINELLE=${gKERNEL_SRC_COCCINELLE}  # for Coccinelle
+
+for ((i=0; i<${gRow}; i+=${gDim}))
+do
+    local space="${gCmdArray[${i}]}"
+	let k=i+1
+    local type="${gCmdArray[${k}]}"
+	let k=i+2
+    local suite="${gCmdArray[${k}]}"
+	let k=i+3
+    local tool_name="${gCmdArray[${k}]}"
+	let k=i+4
+    local tool_desc="${gCmdArray[${k}]}"
+	let k=i+5
+    local tool_path="${gCmdArray[${k}]}"
+	let k=i+6
+    local tool_params="${gCmdArray[${k}]}"
+
+    #local fmtstr="%10s:%7s:%10s:%10s:%10s:%10s:%10s\n"
+    local fmtstr="%s:%s:%s:%s:%s:%s:%s\n"
+	[ ${DEBUG} -eq 1 ] && printf "run$ ${fmtstr}" "${space}" "${type}" "${suite}" \
+	       "${tool_name}" "${tool_desc}" "${tool_path}" "${tool_params}"
+
+	[ ! -z "${gRUNCMD_PFX_UTIL}" ] && {
+		local cmd="${gRUNCMD_PFX_UTIL} ${gRUNCMD_PFX_UTIL_ARGS} ${tool_path} ${tool_params}"
+	} || {
+		local cmd="${tool_path} ${tool_params}"
+	}
+	techo "[+] RUNNING :: ${cmd}"
+
+	{
+	echolog "[+] RUNNING :: ${cmd}"
+	eval "${cmd}" 2>&1    # the actual cmd runs
+	echolog "[+] ${cmd}: done."
+	} |tee --append ${LOGFILE_COMMON}  #${LOGFILE_TOOLS}
+
+	[ $? -ne 0 ] && {
+		wecho "[!] Command \"${cmd}\" failed!"
+	}
+done
+} # end run_cmd()
+
+#---------- c h e c k _ d e p s ---------------------------------------
+check_deps()
+{
+#QP
+local util
+report_progress
+
+for util in make spatch xterm perf
+do
+ which ${util} > /dev/null 2>&1 || {
+   FatalError "The ${util} utility or package does not seem to be installed! Aborting..."
+ }
+done
+
+[ 0 -eq 1 ] && {
+ # TODO - dpkg: assumes Ubuntu/Deb
+ # dpkg -l |grep -q libncurses5-dev 2>/dev/null || 
+ dnf list|grep -q -w "^ncurses-devel\.x86_64" || {    # on FC
+   FatalError "The ncurses-devel library and headers does not seem to be installed.
+(Required for kernel config UI).
+Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..."
+ }
+}
+} # end check_deps()
+
+signal_trap()
+{
+report_progress
+iecho "${name}: terminating due to signal interruption!"
+exit 3
+}
+
+#---------- s e t u p _ c o n f i g _ v a r s -------------------------
+# Parse required configs into our vars
+setup_config_vars()
+{
+local tmp
+tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
+gTARGET_SRC_STATIC=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+#echo "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
+
+# setup actual scratch folder now
+#tmp=$(check_config_foo_get_retval CONFIG_CQUATS_SCRATCH_FOLDER)
+#gCQUATS_SCRATCH_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+#decho "gCQUATS_SCRATCH_FOLDER=${gCQUATS_SCRATCH_FOLDER}"
+#mkdir -p ${gCQUATS_SCRATCH_FOLDER} || FatalError "Creating scratch folder \"${gCQUATS_SCRATCH_FOLDER}\""
+#gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
+#cp ${gINITIAL_TMPF_CONFIG} ${gTMPF_CONFIG} || FatalError "[2] cp tmp-config failed!"
+
+tmp=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
+gCQUATS_REPORTS_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+mkdir -p ${gCQUATS_REPORTS_FOLDER} 2>/dev/null   # || FatalError "Creating scratch folder \"${gCQUATS_REPORTS_FOLDER}\""
+
+# run cmd prefix
+tmp=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL)
+gRUNCMD_PFX_UTIL=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+tmp=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL_ARGS)
+gRUNCMD_PFX_UTIL_ARGS=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+} # end setup_config_vars()
+
+#----------- s e t u p _ t m p _ c o n f i g --------------------------
+# Setup the config file
+setup_tmp_config()
+{
+report_progress
+cp ${CONFIG_FILE} ${gTMPF_CONFIG} || FatalError "cp tmp-config failed!"
+sed --in-place '/^$/d' ${gTMPF_CONFIG}   # rm empty lines
+sed --in-place '/^#/d' ${gTMPF_CONFIG}   # rm comment lines
+sed --in-place 's/\"//g' ${gTMPF_CONFIG} # rm double-quotes
+} # end setup_tmp_config()
+
+
+#---------------- m a i n ---------------------------------------------
+main()
+{
+local tmp
+
+report_progress
+
+# Terminal 'color' support?
+which tput > /dev/null 2>&1 || {
+   COLOR=0
+   echo "tput does not seem to be installed, no color support..."
+} && {
+   local numcolor=$(tput colors)
+   [ ${numcolor} -ge 8 ] && COLOR=1
+}
+
+trap 'signal_trap' INT QUIT
+
+parent=$(ps -o comm= $PPID)
+check_deps
+
+# Has the 'menuconfig' (iow, the 'make menuconfig') been done?
+[ ! -f ${CONFIG_FILE} ] && {
+   wecho "[!] ${name}: please configure CQuATS first by running the 'menuconfig'
+program and selecting options accordingly from the menu. Aborting..."
+   exit 1
+}
+
+setup_tmp_config
+setup_config_vars
+build_cmd
+
+exit 0
+
+wecho "${gInitMsg}"
+run_cmd
+} # end main()
+
+
+##### execution starts here #####
+
+main
+[ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}
+iecho "[+] ${name}: done.
+======================================================================="
+exit 0
+
+# vi: set ts=4
+# end.

@@ -1,0 +1,12 @@
+# CQuATS TODO
+
+
++ perf rec&rep: place output report in appropriate folder
+  - a menu entry to configure 'report' folder?
+
+coccinelle:spatch on FC 26 issues
+19oct17
+
++ Strip out menu.sh (?)
++ 'run' script only
+ 

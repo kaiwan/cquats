@@ -1,0 +1,31 @@
+#!/bin/bash
+# configure
+# 
+# Quick Description:
+# Part of the CQUATS - C QA ToolSet - project
+# 
+# CQuATS Configuration Menu System.
+# Menu is based on the opensource Kbuild system;
+# initial template sourced from here:
+#  https://github.com/masahir0y/kbuild_skeleton
+# All credit to the original devs.
+#
+# Last Updated :
+# Created      : 20Sep2017
+# 
+name=$(basename $0)
+PFX=$(dirname `which $0`)
+source ${PFX}/cquats_common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
+ [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+
+cd ${MENUDIR}
+echo -n "${gPRJ}:${name}: menu system loading, pl wait ..."
+#progress_wheel &
+#progpid=$!
+
+make menuconfig
+ # latest choices are in it's .config
+#kill ${progpid} >/dev/null 2>&1
+exit 0
