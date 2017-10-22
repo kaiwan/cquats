@@ -1,11 +1,12 @@
-CQuATS - C QA ToolSet project
+CQuATS - C Quality Assurance ToolSet project
 
 CQuATS is a management system that aims to collect heterogeneous code safety
 and security analysers/tools (primarily for 'C' code), bringing them together
 into a coherent, easy-to-use system.
+You can also think of it as an "automation-UI" kind of tool.
 
-Categories:
-
+It allows a 'C' developer to easily setup code analysis, etc tools to run over his/her codebase / binaries.
+Categories it covers:
   Static Analysers
   Dynamic Analysers
   Profilers
@@ -35,7 +36,7 @@ The actual work is carried out here.
 An 'Execution Matrix' - the tasks to be carried out - are displayed:
 
  An example run:
- [...]
+ ...
 Execution Matrix
 +-----------------------------------------------------------------------------------------+
 +    Space      Type    Suite   ToolName          Description              Run-Command    +
