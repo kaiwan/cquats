@@ -25,6 +25,11 @@ The particular tools that currently integrate into the framework are
 documented [in a Google sheet](http://bit.ly/CQuATS) [1]. *Please do refer to this sheet for details on which tools exactly are covered, and the current status.*
 
 
+Note:
+The githib page has a Wiki section; it currently contains the 'TODO' file
+(moved out of the code & into the wiki).
+
+
 ## Using CQuATS in 3 Simple Steps
 
  - **Step 1.**
