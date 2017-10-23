@@ -131,7 +131,7 @@ do
     printf "%s\n" "${gCmdArray[${k}]}"
 	let c=c+1
 done |tee -a ${LOGFILE_COMMON}
-echo "+-----------------------------------------------------------------------------------------+"
+echo "+-----------------------------------------------------------------------------------------+" |tee -a ${LOGFILE_COMMON}
 } # end showExecutionMatrix
 
 #----- c h e c k _ i f _ c o n f  i g _ f o o _ s e t -----------------
@@ -606,7 +606,7 @@ showExecutionMatrix
 run_cmd()
 {
 report_progress
-local i k=0
+local i k=0 currItem=1 total=0
 decho "gRow = ${gRow}"
 
 [ ${gRow} -eq 0 ] && {
@@ -615,6 +615,7 @@ decho "gRow = ${gRow}"
   return
 }
 
+let total=${gRow}/${gDim}
 wecho "${gInitMsg}"
 
 for ((i=0; i<${gRow}; i+=${gDim}))
@@ -643,17 +644,20 @@ do
 	} || {
 		local cmd="${tool_path} ${tool_params}"
 	}
-	techo "[+] RUNNING :: ${cmd}"
+	techo "[+] RUNNING: ${currItem} of ${total} ::
+${cmd}"
 
 	{
-	echolog "[+] RUNNING :: ${cmd}"
+	echolog "[+] RUNNING : ${currItem} of ${total} ::
+${cmd}"
 	eval "${cmd}" 2>&1    # the actual cmd runs
 	echolog "[+] ${cmd}: done."
-	} |tee --append ${LOGFILE_COMMON}  #${LOGFILE_TOOLS}
+	} |tee --append ${LOGFILE_COMMON}
 
 	[ $? -ne 0 ] && {
 		wecho "[!] Command \"${cmd}\" failed!"
 	}
+	let currItem=currItem+1
 done
 } # end run_cmd()
 
@@ -771,18 +775,26 @@ setup_tmp_config
 setup_config_vars
 build_cmd
 
-[ ${gNORUN} -eq 1 ] && return
+[ ${gNORUN} -eq 1 ] && {
+  iecho "[i] Not running tools as the NORUN switch is On"
+  return
+}
 run_cmd
 } # end main()
 
 
 ##### execution starts here #####
 
-gNORUN=0   # set to 1 to setup everything but not actually run
+gNORUN=0   # set to 1 to setup everything but Not actually run
+gLINE_INIT="
+^^^=================================================================^^^
+"
 gLINE_END="
 \$\$\$=================================================================\$\$\$
 "
 
+echo "${gLINE_INIT}
+[$(date +%a_%d%b%Y_%T.%N)]: ${gPRJ} : Initializing..." |tee --append ${LOGFILE_COMMON}
 main
 
 [ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}
