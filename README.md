@@ -1,4 +1,4 @@
-**CQuATS - C Quality Assurance ToolSet project**
+# CQuATS - C Quality Assurance ToolSet project
 
 CQuATS is a management system that aims to collect heterogeneous code safety and security analysers/tools (primarily for 'C' code), bringing them together into a coherent, easy-to-use system. You can also think of it as an *"automation-UI"* kind of tool.
 
@@ -9,25 +9,32 @@ Categories it covers:
  - Profilers   
  - Security
 
-An easy to use menu system (based on Kconfig) makes it very easy for a developer to setup the system and have it run all tests / profiling / etc.  When done, a detailed log contains all results.
+A menu system (based on Kconfig) makes it very easy for a developer to setup the system and have it run all tests / profiling / etc.  When done, a detailed log contains all results.
 
-**Some Details**
+## Some Details
+
+### Philosophy
+The key philosopht behind CQuATS is simple:
+ A very large proportion of security vulnerabilities (and hence, attacks), is rooted in the fact that it's a software (or possibly hardware) **bug**. Thus, identifying and weaning out potential bugs, concerns and "code smells", is something that developers traditionally struggle with. This tool is an attempt to address these concerns, and hopefully, make our software more robust, stable and immune to potential vulnerabilities/bugs.
+ 
 
 CQuATS integrates a set of diverse tools into a coherent whole.
 The particular tools that currently integrate into the framework are
 documented [in a Google sheet](http://bit.ly/CQuATS) [1]. *Please do refer to this sheet for details on which tools exactly are covered, and the current status.*
 
-**Using CQuATS in 3 Simple Steps**
 
- - Step 1
+## Using CQuATS in 3 Simple Steps
+
+ - **Step 1.**
 
 Invoke the 'menuconfig' script, which is essentially a thin wrapper over
 the 'make menuconfig' to configure and setup the CQuATS run.
 (FYI, the run produces the required configuration info in an ASCII text file here: *kbuild/.config* ).
 
-- Step  2
+- **Step  2.**
+
 Invoke the 'run_cquats' script. The actual work is carried out here. 
-An *'Execution Matrix'* - the tasks to be carried out (CSV) - are displayed:
+An **_'Execution Matrix'_** - the tasks to be carried out (CSV) - are displayed:
 An example run:
 
      ...
@@ -45,7 +52,8 @@ An example run:
 - The run_cquats script now parses and "runs" the commands as specified via the
 'execution matrix', one by one.
 
-- Step 3.
+- **Step 3.**
+
 All output (as well as stderr) is auto-redirected to a log file (which is
 *./log_cquats.txt* by default); it contains all message with timestamps, etc as far as possible. Examine the log file (log_cquats.txt) carefully.
 Also, for some cases (like perf), there might be reports generated; you will find them under the '*reports*' folder.
@@ -55,4 +63,4 @@ Ref:
 [1] http://bit.ly/CQuATS
 
 
-> Written with [StackEdit](https://stackedit.io/).
+> (Partly) Written with [StackEdit](https://stackedit.io/).
