@@ -14,9 +14,7 @@
 # kaiwan -at- kaiwantech -dot- com
 # kaiwanTECH
 # 
-# License:
-# MIT License.
-# 
+# License: GPLv2
 
 ########### Globals follow #########################
 # Style: gNameOfGlobalVar

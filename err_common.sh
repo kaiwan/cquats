@@ -6,11 +6,11 @@
 # 
 # (c) Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
-# MIT / GPL v2
+# License: GPLv2
 #------------------------------------------------------------------
 export TOPDIR=$(pwd)
 export VERBOSE_MSG=0
-export DEBUG=1
+export DEBUG=0  #1
 # Replace with log filename
 export LOGFILE_COMMON=${TOPDIR}/log_cquats.txt  #/dev/null
 export COLOR=1

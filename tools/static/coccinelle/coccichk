@@ -1,0 +1,131 @@
+#!/bin/bash
+# coccichk
+# 
+# Quick Description:
+# Run the Linux kernel's cocinelle semantic patch checkers on a given
+# source file(s) or folder. Realistically, a wrapper over spatch.
+#
+# Last Updated :
+# Created      : 23Aug2017
+# 
+# Author:
+# Kaiwan N Billimoria
+# kaiwan -at- kaiwantech -dot- com
+# kaiwanTECH
+# 
+# License:
+# MIT License.
+name=$(basename $0)
+
+########### Globals follow #########################
+# Style: gNameOfGlobalVar
+
+gInitMsg=\
+"@@@ ${name}: WARNING! Don't blindly act on coccinelle's output @@@
+@@@ False positives can and do occur. Verify your code.         @@@
+@@@ (Also, it works only on C source/header files, nothing else)@@@
+"
+
+[ -z "${TOOLS_STATIC}" ] && TOOLS_STATIC=..
+[ -z "${TOOLS_STATIC}" ] && {
+  echo "${name}: this tool must be run from within the CQuATS framework, Not directly; aborting..."
+  exit 1 
+}
+gCOCCI_SCRIPTS_LOC=${TOOLS_STATIC}/coccinelle/coccinelle_scripts
+# Switch to verbose mode if env var V=1
+[ -z "${V}" ] && gVERBOSE=0 || {
+	[ ${V} -eq 1 ] && {
+	   gVERBOSE=1
+	   echo "[${name}: verbose mode]"
+	}
+}
+
+########### Functions follow #######################
+
+runcocci()
+{
+[ $# -ne 1 ] && return
+local cocci
+local SP_BASEOPTS="-D report  --include-headers"
+#local SP_BASEOPTS="-D report --very-quiet --include-headers"
+local msg
+
+# If first parameter is a directory, then work on all source files within it
+if [ -d $1 ] ; then
+  SP_OPTS="${SP_BASEOPTS} --dir $1"
+  msg="#Folder:${1}"
+else
+  msg="#FILE:${1}"
+fi
+
+echo "${msg}"
+# Loop over all cocci sp's (semantic patches)
+for cocci in $(find ${gCOCCI_SCRIPTS_LOC}/ -name "*.cocci")
+do
+ [ ${gVERBOSE} -eq 1 ] && echo "*--$(basename ${cocci})--*"
+ spatch ${SP_BASEOPTS} --sp-file ${cocci} ${1}
+done
+} # end runcocci()
+
+cleanup()
+{
+#echo "######### ${name}:cleanup()!"
+while [ true ]
+do
+ echo -n .
+ pkill --exact spatch
+ ps -e|grep -w -q spatch || break
+done
+}
+
+
+##### 'main' : execution starts here #####
+
+# TODO - check for verbose mode param '-v' ; use getopt?
+
+#echo "##### ${name}: gKSRC = ${gKSRC} gKERNEL_SRC = ${gKERNEL_SRC}"
+
+parent=$(ps -o comm= $PPID)
+which spatch >/dev/null || {
+  echo "${name}: coccinelle (spatch) not installed?"
+  exit 1
+}
+[ ! -d ${gCOCCI_SCRIPTS_LOC} ] && {
+  echo "${name}: Coccinelle Scripts location \"${gCOCCI_SCRIPTS_LOC}\" invalid, aborting run..."
+  [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+[ $# -lt 1 ] && {
+  echo "Usage: ${name} <source-pathname(s)> file1 [file2] [file3] ...
+  -OR-
+${name} source-folder"
+  [ "${parent}" = "bash" ] && exit 1 || return 1
+}
+
+echo "${gInitMsg}"
+
+# TODO
+# Handle ^C ^\ properly; kill all spatch processes
+trap 'cleanup' INT QUIT EXIT
+
+# If a folder passed as $1
+if [ -d $1 ] ; then
+  runcocci $1
+  exit 0
+fi
+
+# If one or more files are passed, or a wildcard..
+for fname in "$@"
+do
+  file ${fname} |egrep -q "C source" || {
+    echo "${name}: skipping ${fname} .."
+	continue
+  }
+    # RELOOK: will spatch play nicely with C++ ?? As of now, we don't process it
+
+  [ ! -f ${fname} -o ! -r ${fname} ] && {
+    echo "${name}: source file \"${fname}\" does not exist or unreadable?"
+	continue
+  }
+  runcocci ${fname}
+done
+exit 0

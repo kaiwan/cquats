@@ -11,6 +11,8 @@ Categories it covers:
 
 A menu system (based on Kconfig) makes it very easy for a developer to setup the system and have it run all tests / profiling / etc.  When done, a detailed log contains all results.
 
+License: GPLv2
+
 ## Some Details
 
 ### Philosophy
@@ -32,7 +34,10 @@ the 'make menuconfig' to configure and setup the CQuATS run.
 (FYI, the run produces the required configuration info in an ASCII text file here: *kbuild/.config* ).
 
 CQuATS has a few dependencies; ensure these packages/utils are installed on your box:
- * 
+ * make
+ * spatch
+ * xterm
+ * perf
 
 - **Step  2.**
 

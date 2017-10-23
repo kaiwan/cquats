@@ -1,6 +1,10 @@
 kbuild_skeleton
 ===============
 
+[NOTE- The code of kbuild/ is from here:
+ https://github.com/masahir0y/kbuild_skeleton
+]
+
 A template with Linux Kernel like build system (Kbuild).
 
 Writing a basic makefile for a small project is fairly simple.

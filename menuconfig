@@ -12,7 +12,7 @@
 #
 # Last Updated :
 # Created      : 20Sep2017
-# 
+# License: GPLv2
 name=$(basename $0)
 PFX=$(dirname `which $0`)
 source ${PFX}/cquats_common.sh || {
@@ -21,7 +21,7 @@ source ${PFX}/cquats_common.sh || {
 }
 
 cd ${MENUDIR}
-echo -n "${gPRJ}:${name}: menu system loading, pl wait ..."
+echo "${gPRJ}:${name}: menu system loading, pl wait ..."
 #progress_wheel &
 #progpid=$!
 

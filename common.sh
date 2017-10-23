@@ -6,15 +6,8 @@
 # 
 # (c) Kaiwan N Billimoria
 # kaiwan -at- kaiwantech -dot- com
-# MIT / GPL v2
+# License: GPLv2
 #------------------------------------------------------------------
-# The SEALS Opensource Project
-# SEALS : Simple Embedded Arm Linux System
-# Maintainer : Kaiwan N Billimoria
-# kaiwan -at- kaiwantech -dot- com
-# Project URL:
-# https://github.com/kaiwan/seals
-
 export TOPDIR=$(pwd)
 ON=1
 OFF=0

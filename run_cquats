@@ -23,11 +23,10 @@
 # 
 # Author:
 # Kaiwan N Billimoria
-# kaiwan -at- kaiwantech -dot- com
+# kaiwan -dot- billimoria -at- gmail -dot- com
 # kaiwanTECH
 # 
-# License:
-# MIT License.
+# License: GPLv2.
 # 
 name=$(basename $0)
 
@@ -655,7 +654,6 @@ done
 #---------- c h e c k _ d e p s ---------------------------------------
 check_deps()
 {
-#QP
 local util
 report_progress
 
@@ -756,7 +754,7 @@ setup_tmp_config
 setup_config_vars
 build_cmd
 
-exit 0
+[ ${NORUN} -eq 1 ] && return
 
 wecho "${gInitMsg}"
 run_cmd
@@ -765,6 +763,7 @@ run_cmd
 
 ##### execution starts here #####
 
+NORUN=0   # set to 1 to setup everything but not actually run
 main
 [ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}
 iecho "[+] ${name}: done.
