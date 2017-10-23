@@ -6,6 +6,7 @@ log*
 perf.data*
 .scratch_cquats/*
 reports/*
+TODOs  # moved to github Wiki
 
 ####### template follows:
 # Prerequisites
