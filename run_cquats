@@ -658,18 +658,28 @@ done
 } # end run_cmd()
 
 #---------- c h e c k _ d e p s ---------------------------------------
+# Checks passed packages - are they installed? (just using 'which';
+# using the pkg management utils (apt/dnf/etc) would be too time consuming)
+# Parameters:
+# [.. $@ ..] : space-sep string of all packages to check
 check_deps()
 {
-local util
+local util needinstall=0
 report_progress
 
-for util in make spatch xterm perf
+#for util in make spatch xterm perf
+for util in "$@"
 do
  which ${util} > /dev/null 2>&1 || {
-   FatalError "The ${util} utility or package does not seem to be installed! Aborting..."
+   [ ${needinstall} -eq 0 ] && wecho "The following required utilit[y|ies] or package(s) do NOT seem to be installed:"
+   iecho "[!]  ${util}"
+   needinstall=1
+   continue
  }
 done
+[ ${needinstall} -eq 1 ] && FatalError "Kindly first install the required package(s) and then retry, thanks. Aborting now..."
 
+# RELOOK
 [ 0 -eq 1 ] && {
  # TODO - dpkg: assumes Ubuntu/Deb
  # dpkg -l |grep -q libncurses5-dev 2>/dev/null || 
@@ -684,7 +694,7 @@ Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..
 signal_trap()
 {
 report_progress
-iecho "[!] ${name}: terminating due to signal interruption!
+iecho "[!] ${name}: terminating due to signal interruption! (3)
 ${gLINE_END}"
 exit 3
 }
@@ -748,7 +758,7 @@ which tput > /dev/null 2>&1 || {
 trap 'signal_trap' INT QUIT
 
 parent=$(ps -o comm= $PPID)
-check_deps
+check_deps make perf spatch xterm
 
 # Has the 'menuconfig' (iow, the 'make menuconfig') been done?
 [ ! -f ${CONFIG_FILE} ] && {
@@ -776,7 +786,7 @@ gLINE_END="
 main
 
 [ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}
-iecho "[+] ${name}:$(date +%F.%H%M%S): done.
+iecho "[+] : done, exiting (0).
 ${gLINE_END}"
 exit 0
 
