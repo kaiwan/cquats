@@ -607,9 +607,15 @@ run_cmd()
 {
 report_progress
 local i k=0
-#decho "gRow = ${gRow}"
+decho "gRow = ${gRow}"
 
-#export gKERNEL_SRC_COCCINELLE=${gKERNEL_SRC_COCCINELLE}  # for Coccinelle
+[ ${gRow} -eq 0 ] && {
+  report_progress
+  iecho "No tools to run."
+  return
+}
+
+wecho "${gInitMsg}"
 
 for ((i=0; i<${gRow}; i+=${gDim}))
 do
@@ -755,8 +761,6 @@ setup_config_vars
 build_cmd
 
 [ ${NORUN} -eq 1 ] && return
-
-wecho "${gInitMsg}"
 run_cmd
 } # end main()
 
