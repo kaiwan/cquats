@@ -684,7 +684,8 @@ Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..
 signal_trap()
 {
 report_progress
-iecho "${name}: terminating due to signal interruption!"
+iecho "[!] ${name}: terminating due to signal interruption!
+${gLINE_END}"
 exit 3
 }
 
@@ -760,18 +761,23 @@ setup_tmp_config
 setup_config_vars
 build_cmd
 
-[ ${NORUN} -eq 1 ] && return
+[ ${gNORUN} -eq 1 ] && return
 run_cmd
 } # end main()
 
 
 ##### execution starts here #####
 
-NORUN=0   # set to 1 to setup everything but not actually run
+gNORUN=0   # set to 1 to setup everything but not actually run
+gLINE_END="
+\$\$\$=================================================================\$\$\$
+"
+
 main
+
 [ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}
-iecho "[+] ${name}: done.
-======================================================================="
+iecho "[+] ${name}:$(date +%F.%H%M%S): done.
+${gLINE_END}"
 exit 0
 
 # vi: set ts=4

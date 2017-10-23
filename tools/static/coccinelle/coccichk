@@ -45,10 +45,9 @@ gCOCCI_SCRIPTS_LOC=${TOOLS_STATIC}/coccinelle/coccinelle_scripts
 runcocci()
 {
 [ $# -ne 1 ] && return
-local cocci
-local SP_BASEOPTS="-D report  --include-headers"
-#local SP_BASEOPTS="-D report --very-quiet --include-headers"
-local msg
+local cocci msg
+#local SP_BASEOPTS="-D report  --include-headers"
+local SP_BASEOPTS="-D report --very-quiet --include-headers"
 
 # If first parameter is a directory, then work on all source files within it
 if [ -d $1 ] ; then
