@@ -14,8 +14,8 @@ A menu system (based on Kconfig) makes it very easy for a developer to setup the
 ## Some Details
 
 ### Philosophy
-The key philosopht behind CQuATS is simple:
- A very large proportion of security vulnerabilities (and hence, attacks), is rooted in the fact that it's a software (or possibly hardware) **bug**. Thus, identifying and weaning out potential bugs, concerns and "code smells", is something that developers traditionally struggle with. This tool is an attempt to address these concerns, and hopefully, make our software more robust, stable and immune to potential vulnerabilities/bugs.
+The key philosophy behind CQuATS is simple:
+ A very large proportion of security vulnerabilities - and hence, (technical) attacks - is rooted in the fact that the vulnerability is, at root, a software **bug**. Identifying and weeding out _potential_ or hidden bugs, concerns and "code smells", is something that developers traditionally struggle with, especially given the complexity of large software projects / products. This tool is an attempt to address these concerns, and hopefully, make our software more robust, stable and immune to potential vulnerabilities/bugs.
  
 
 CQuATS integrates a set of diverse tools into a coherent whole.
@@ -27,9 +27,12 @@ documented [in a Google sheet](http://bit.ly/CQuATS) [1]. *Please do refer to th
 
  - **Step 1.**
 
-Invoke the 'menuconfig' script, which is essentially a thin wrapper over
+Once installed (via git or download), invoke the 'menuconfig' script, which is essentially a thin wrapper over
 the 'make menuconfig' to configure and setup the CQuATS run.
 (FYI, the run produces the required configuration info in an ASCII text file here: *kbuild/.config* ).
+
+CQuATS has a few dependencies; ensure these packages/utils are installed on your box:
+ * 
 
 - **Step  2.**
 
