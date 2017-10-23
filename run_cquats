@@ -360,7 +360,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 	local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_VIA_CQUATS)
 	local vg_via_cquats=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 	#Prompt "vg_via_cquats = $vg_via_cquats"
-	[ "${vg_via_cquats}" = "y" ] && {
+	if [ "${vg_via_cquats}" = "y" ] ; then
 		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_APP)
 		local vg_target_app=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 		#Prompt "vg_target_app = $vg_target_app"
@@ -374,7 +374,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 		  break
 		}
 		decho "valgrind:memcheck: target app is \"${vg_target_app}\""
-	} || {   # via existing Script
+	else                      # via existing Script
 		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_SCRIPT)
 		local vg_target_script=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 		[ -z "${vg_target_script}" ] && {
@@ -386,7 +386,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 		  break
 		}
 		decho "valgrind:memcheck: target script is \"${vg_target_script}\""
-	}
+	fi
 
     # Setup the command array for this tool
 	gCmdArray[${gRow}]="user-land"                                           # [0]
