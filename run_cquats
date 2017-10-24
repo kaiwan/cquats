@@ -634,25 +634,36 @@ do
 	let k=i+6
     local tool_params="${gCmdArray[${k}]}"
 
-    #local fmtstr="%10s:%7s:%10s:%10s:%10s:%10s:%10s\n"
-    local fmtstr="%s:%s:%s:%s:%s:%s:%s\n"
-	[ ${DEBUG} -eq 1 ] && printf "run$ ${fmtstr}" "${space}" "${type}" "${suite}" \
-	       "${tool_name}" "${tool_desc}" "${tool_path}" "${tool_params}"
+	local fmtstr="\
++---[%2d of %2d]---------------------------------------+\n\
+Space    : %s\n\
+Type     : %s\n\
+Suite    : %s\n\
+Tool     : %s\n\
+  Desc   : %s\n\
+  Path   : %s\n\
+  Params : %s\n\n"
+	printf "${fmtstr}" "${currItem}" "${total}" "${space}" "${type}" "${suite}" \
+	       "${tool_name}" "${tool_desc}" "${tool_path}" "${tool_params}" |tee --append ${LOGFILE_COMMON}
 
 	[ ! -z "${gRUNCMD_PFX_UTIL}" ] && {
 		local cmd="${gRUNCMD_PFX_UTIL} ${gRUNCMD_PFX_UTIL_ARGS} ${tool_path} ${tool_params}"
 	} || {
 		local cmd="${tool_path} ${tool_params}"
 	}
+
+	### run cmd
+if [ 1 -eq 1 ] ; then
+	{
 	techo "[+] RUNNING: ${currItem} of ${total} ::
 ${cmd}"
-
-	{
-	echolog "[+] RUNNING : ${currItem} of ${total} ::
-${cmd}"
+	#echolog "[+] RUNNING : ${currItem} of ${total} ::
+#${cmd}"
 	eval "${cmd}" 2>&1    # the actual cmd runs
 	echolog "[+] ${cmd}: done."
 	} |tee --append ${LOGFILE_COMMON}
+	###
+fi
 
 	[ $? -ne 0 ] && {
 		wecho "[!] Command \"${cmd}\" failed!"
@@ -671,8 +682,7 @@ check_deps()
 local util needinstall=0
 report_progress
 
-#for util in make spatch xterm perf
-for util in "$@"
+for util in $@
 do
  which ${util} > /dev/null 2>&1 || {
    [ ${needinstall} -eq 0 ] && wecho "The following required utilit[y|ies] or package(s) do NOT seem to be installed:"
@@ -700,6 +710,7 @@ signal_trap()
 report_progress
 iecho "[!] ${name}: terminating due to signal interruption! (3)
 ${gLINE_END}"
+iecho "[i] Log: ${LOGFILE_COMMON}"
 exit 3
 }
 
@@ -710,19 +721,11 @@ setup_config_vars()
 local tmp
 tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
 gTARGET_SRC_STATIC=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-#echo "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
-
-# setup actual scratch folder now
-#tmp=$(check_config_foo_get_retval CONFIG_CQUATS_SCRATCH_FOLDER)
-#gCQUATS_SCRATCH_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-#decho "gCQUATS_SCRATCH_FOLDER=${gCQUATS_SCRATCH_FOLDER}"
-#mkdir -p ${gCQUATS_SCRATCH_FOLDER} || FatalError "Creating scratch folder \"${gCQUATS_SCRATCH_FOLDER}\""
-#gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
-#cp ${gINITIAL_TMPF_CONFIG} ${gTMPF_CONFIG} || FatalError "[2] cp tmp-config failed!"
+decho "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
 
 tmp=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
 gCQUATS_REPORTS_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-mkdir -p ${gCQUATS_REPORTS_FOLDER} 2>/dev/null   # || FatalError "Creating scratch folder \"${gCQUATS_REPORTS_FOLDER}\""
+mkdir -p ${gCQUATS_REPORTS_FOLDER} 2>/dev/null
 
 # run cmd prefix
 tmp=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL)
@@ -748,12 +751,13 @@ main()
 {
 local tmp
 
+[ ${DEBUG} -eq 1 ] && echo "${name}: [i] running with DEBUG on" |tee -a ${LOGFILE_COMMON}
 report_progress
 
 # Terminal 'color' support?
 which tput > /dev/null 2>&1 || {
    COLOR=0
-   echo "tput does not seem to be installed, no color support..."
+   echo "${name}: [!] tput does not seem to be installed, no color support..."
 } && {
    local numcolor=$(tput colors)
    [ ${numcolor} -ge 8 ] && COLOR=1
@@ -762,7 +766,7 @@ which tput > /dev/null 2>&1 || {
 trap 'signal_trap' INT QUIT
 
 parent=$(ps -o comm= $PPID)
-check_deps make perf spatch xterm
+check_deps "make perf spatch xterm"
 
 # Has the 'menuconfig' (iow, the 'make menuconfig') been done?
 [ ! -f ${CONFIG_FILE} ] && {
@@ -780,6 +784,7 @@ build_cmd
   return
 }
 run_cmd
+iecho "[i] Log: ${LOGFILE_COMMON}"
 } # end main()
 
 
@@ -787,14 +792,14 @@ run_cmd
 
 gNORUN=0   # set to 1 to setup everything but Not actually run
 gLINE_INIT="
-^^^=================================================================^^^
-"
+^^^=================================================================^^^"
 gLINE_END="
 \$\$\$=================================================================\$\$\$
 "
 
 echo "${gLINE_INIT}
 [$(date +%a_%d%b%Y_%T.%N)]: ${gPRJ} : Initializing..." |tee --append ${LOGFILE_COMMON}
+
 main
 
 [ ${DEBUG} -eq 1 ] || rm -f ${gTMPF_CONFIG}

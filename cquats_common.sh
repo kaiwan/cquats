@@ -33,17 +33,16 @@ TOP=$(pwd)
 MENUDIR=${TOP}/kbuild
 CONFIG_FILE=${MENUDIR}/.config
 
+# Setup the 'scratch' folder
 gCQUATS_SCRATCH_FOLDER=${TOP}/.scratch_cquats
-mkdir -p ${gCQUATS_SCRATCH_FOLDER} || FatalError "Creating scratch folder \"${gCQUATS_SCRATCH_FOLDER}\""
+mkdir -p ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 
-LOGFILE_TOOLS=${TOP}/log_tools_output.txt
 DT_LOG="[$(date +%a_%d%b%Y_%T.%N)]"
-
 TOOLS_LOC=${TOP}/tools
 TOOLS_STATIC=${TOOLS_LOC}/static
 
-#----------------------------------------------------------------------
+#---------Functions----------------------------------------------------
 LN="+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echolog()
 {
