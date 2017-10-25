@@ -24,19 +24,37 @@ menu "CQuATS Configuration"
 	  TIP: do Not use metacharacters (like '~') in the pathname!
 
   config CQUATS_RUNCMD_PFX_UTIL
-	string "Utility to prefix to the 'run command' [default: time]"
+	string "Utility to prefix to the 'run command' !CAREFUL! (see Help)
+	 [default: time]"
 	default "time"
 	help
 	  Utility to prefix to the 'run command' [default: time]. 
 	  Another could be perf; for eg.
 	  'perf stat' .
+	  NOTE! This is dangerous from a security viewpoint: any command prefixed
+	  here will run prior to running the actual tool. Use with caution or
+	  disable by setting the value to NUL.
 
   config CQUATS_RUNCMD_PFX_UTIL_ARGS
+  depends on CQUATS_RUNCMD_PFX_UTIL != ""
 	string "Arguments to the utility to prefix to the 'run command'"
 	help
 	  Arguments to pass to the utility to prefix to the 'run command' (above) [default: time].
 	  Another could be args for perf; for eg.
 	  ('perf stat' with) args '--scale -d --big-num' .
+
+  config CQUATS_DUMMY_RUN
+	bool "Don't actually run any tools, only show what will run"
+	help
+	  If turned On, CQuATS runs in "dummy ,ode", i.e., everything goes through
+	  except actually running selected tools. Useful for developers/testers
+	  [default: false]
+
+  config CQUATS_DEBUG
+	bool "Run CQuATS in Debug mode"
+	help
+	  If turned On, debug messages in particular and more verbosity in
+	  general will occur. Useful for developers [default: false]
 
 endmenu
 #======================================================================
@@ -55,7 +73,7 @@ menu "Userland Tools"
  depends on TARGET_SRC_STATIC != ""
 
   config COCCINELLE
-	bool "Static Analysis: Coccinelle" #if KERNEL_SRC != NULL
+	bool "Static Analysis: Coccinelle"
 	default n
 	help
 	  Invoke the Coccinelle static analyser on the selected codebase.

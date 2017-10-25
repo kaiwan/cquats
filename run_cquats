@@ -624,7 +624,7 @@ Tool     : %s\n\
 	}
 
 	### run cmd
-if [ 1 -eq 1 ] ; then
+if [ "${gCQUATS_DUMMY_RUN}" != "y" ] ; then
 	{
 	techo "[+] RUNNING: ${currItem} of ${total} ::
 ${cmd}"
@@ -634,6 +634,8 @@ ${cmd}"
 	echolog "[+] ${cmd}: done."
 	} |tee --append ${LOGFILE_COMMON}
 	###
+else
+	iecho " [i] CONFIG_CQUATS_DUMMY_RUN is On, skipping actual run"
 fi
 
 	[ $? -ne 0 ] && {
@@ -689,7 +691,12 @@ exit 3
 # Parse required configs into our vars
 setup_config_vars()
 {
-local tmp
+local tmp tmp2
+
+tmp=$(check_config_foo_get_retval CONFIG_CQUATS_DEBUG)
+tmp2=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+[ "${tmp2}" = "y" ] && DEBUG=1 || DEBUG=0
+
 tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
 gTARGET_SRC_STATIC=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 decho "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
@@ -698,9 +705,12 @@ if [ -z "${gTARGET_SRC_STATIC}" -o ! -d "${gTARGET_SRC_STATIC}" ] ; then
  [curr val=\"${gTARGET_SRC_STATIC}\"]
 Several tools (coccinelle,sparse,flawfinder,etc) depend on having a target source tree
 to work upon. Pl set this value correctly in the 'menuconfig' and rerun."
-  #break
 fi
 
+gCQUATS_DUMMY_RUN=n
+tmp=$(check_config_foo_get_retval CONFIG_CQUATS_DUMMY_RUN)
+gCQUATS_DUMMY_RUN=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+#echo "gCQUATS_DUMMY_RUN=${gCQUATS_DUMMY_RUN}"
 
 tmp=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
 gCQUATS_REPORTS_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
@@ -730,7 +740,6 @@ main()
 {
 local tmp
 
-[ ${DEBUG} -eq 1 ] && echo "${name}: [i] running with DEBUG on" |tee -a ${LOGFILE_COMMON}
 report_progress
 
 # Terminal 'color' support?
@@ -756,6 +765,7 @@ program and selecting options accordingly from the menu. Aborting..."
 
 setup_tmp_config
 setup_config_vars
+[ ${DEBUG} -eq 1 ] && echo "${name}: [i] running with DEBUG on" |tee -a ${LOGFILE_COMMON}
 build_cmd
 
 [ ${gNORUN} -eq 1 ] && {

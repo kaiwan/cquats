@@ -10,7 +10,7 @@
 #------------------------------------------------------------------
 export TOPDIR=$(pwd)
 export VERBOSE_MSG=0
-export DEBUG=1  #1
+#export DEBUG=1  #1
 # Replace with log filename
 export LOGFILE_COMMON=${TOPDIR}/log_cquats.txt  #/dev/null
 export COLOR=1

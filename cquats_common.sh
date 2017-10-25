@@ -36,9 +36,8 @@ CONFIG_FILE=${MENUDIR}/.config
 # Setup the 'scratch' folder
 gCQUATS_SCRATCH_FOLDER=${TOP}/.scratch_cquats
 mkdir -p ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
-gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 
-DT_LOG="[$(date +%a_%d%b%Y_%T.%N)]"
+gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 TOOLS_LOC=${TOP}/tools
 TOOLS_STATIC=${TOOLS_LOC}/static
 
