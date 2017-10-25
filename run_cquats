@@ -209,6 +209,7 @@ local val=$(cat /proc/sys/kernel/kptr_restrict)
 #     [6] params    : parameter(s) to the particular tool being invoked
 build_cmd()
 {
+local ii
 report_progress
 [ ! -f ${gTMPF_CONFIG} ] && FatalError "Pl report this bug: tmp Config file \
 \"${gTMPF_CONFIG}\" missing!"
@@ -224,17 +225,12 @@ report_progress
 ##echo "ret=${?}"
 #if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
 #
-#  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+#  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
 #  do
 #
 #	local tmp=$(check_config_foo_get_retval CONFIG_FOO2)
 #	local whatever=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 #   [...]
-
-#	if [ -z "${srctree}" ] ; then
-#	  wecho "${name}: sparse: target source tree undefined (null)! aborting run ..."
-#	  break
-#	fi
 
 #   # Setup the command array for this tool
 # Each 'row' will hold the complete details of a tool to run:
@@ -273,16 +269,8 @@ check_if_config_foo_set CONFIG_COCCINELLE # ret 0 if CONFIG_FOO is set
 #echo "ret=${?}"
 if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
 
-  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
-	local srctree
-
-	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
-	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-	if [ -z "${srctree}" ] ; then
-	  wecho "[!] ${name}: coccinelle: target source tree undefined (null)! aborting run ..."
-	  break
-	fi
 
 	local tmp=$(check_config_foo_get_retval CONFIG_COCCINELLE_VERBOSE)
 	local cocciVerbose=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
@@ -304,7 +292,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 		gCmdArray[${gRow}]="${TOOLS_STATIC}/coccinelle/coccichk"
 	}
 	let gRow=gRow+1
-	gCmdArray[${gRow}]="${srctree}"                                          # [6]
+	gCmdArray[${gRow}]="${gTARGET_SRC_STATIC}"                                          # [6]
 	let gRow=gRow+1
   done
 fi
@@ -313,18 +301,10 @@ fi
 check_if_config_foo_set CONFIG_SPARSE # ret 0 if CONFIG_FOO is set
 #echo "ret=${?}"
 if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
-  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
-	local srctree
-	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
-	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 
-	if [ -z "${srctree}" ] ; then
-	  wecho "[!] ${name}: sparse: target source tree undefined (null)! aborting run ..."
-	  break
-	fi
-
-#   # Setup the command array for this tool
+    # Setup the command array for this tool
 	gCmdArray[${gRow}]="user-land"                                           # [0]
 	let gRow=gRow+1
 	gCmdArray[${gRow}]="static"                                              # [1]
@@ -352,7 +332,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
   local vg_memcheck_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
   #decho "vg_memcheck_opts=${vg_memcheck_opts}"
 
-  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
 	local app script
 
@@ -423,7 +403,7 @@ check_if_config_foo_set CONFIG_PERF # ret 0 if CONFIG_FOO is set
 #echo "ret=${?}"
 if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
 
-  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
 	local app script
 
@@ -544,17 +524,8 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
   local tmp=$(check_config_foo_get_retval CONFIG_FLAWFINDER_OPTS)
   local flawfinder_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 
-  for i in 1  # loop just once; an artifact, so that we can use the 'break' :)
+  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
-
-	# Invoke via CQuATS or Script?
-	local tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
-	local srctree=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-
-   	if [ -z "${srctree}" ] ; then
-	  wecho "[!] ${name}: flawfinder: target source tree undefined (null)! aborting run ..."
-	  break
-	fi
 
    # Setup the command array for this tool
 # Each 'row' will hold the complete details of a tool to run:
@@ -579,14 +550,14 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 	let gRow=gRow+1
 	gCmdArray[${gRow}]="flawfinder"                                          # [5]
 	let gRow=gRow+1
-	gCmdArray[${gRow}]="${flawfinder_opts} ${srctree}"                       # [6]
+	gCmdArray[${gRow}]="${flawfinder_opts} ${gTARGET_SRC_STATIC}"                       # [6]
 	let gRow=gRow+1
 
   done
 fi
 
 
-[ ${DEBUG} -eq 1 ] && showCmdArray
+#[ ${DEBUG} -eq 1 ] && showCmdArray
 showExecutionMatrix
 
 } # end build_cmd()
@@ -722,6 +693,14 @@ local tmp
 tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
 gTARGET_SRC_STATIC=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
 decho "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
+if [ -z "${gTARGET_SRC_STATIC}" -o ! -d "${gTARGET_SRC_STATIC}" ] ; then
+  wecho "[!] ${name}: the Target Source Tree location is either undefined (null) or an invalid folder!
+ [curr val=\"${gTARGET_SRC_STATIC}\"]
+Several tools (coccinelle,sparse,flawfinder,etc) depend on having a target source tree
+to work upon. Pl set this value correctly in the 'menuconfig' and rerun."
+  #break
+fi
+
 
 tmp=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
 gCQUATS_REPORTS_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)

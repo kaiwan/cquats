@@ -52,6 +52,7 @@ menu "Userland Tools"
 
  #======================================================================
  menu "Static Analysis Tools"
+ depends on TARGET_SRC_STATIC != ""
 
   config COCCINELLE
 	bool "Static Analysis: Coccinelle" #if KERNEL_SRC != NULL
