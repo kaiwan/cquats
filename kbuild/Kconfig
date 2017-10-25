@@ -62,7 +62,7 @@ endmenu
 menu "Userland Tools"
 
   config TARGET_SRC_STATIC
-	string "Location of source tree target"
+	string "Location of source tree target (for static analysers, etc)"
 	help
 	  This is the source tree which will be parsed by the static analysis and
 	  (some of) the infosec tools. It need not only be the root folder of the
@@ -187,11 +187,11 @@ menu "Userland Tools"
 
     config PERF_TARGET_APP
 	depends on PERF_VIA_CQUATS
-	 string "Enter pathname (and params), of the target application being profiled"
+	 string "Enter full pathname and params, of the target application to be profiled"
 	 help
-	  This is the target app with all parameters as required, that will be profiled
-	  by the Perf tool(s).
-	  TIPs:
+	  This is the target app pathname with all parameters as required, that
+	  will be profiled by the Perf tool(s).
+	  TIPS:
 	   - compiling the target app with '-g' helps with symbol resolution
 	   - do Not use metacharacters (like '~') in the pathname!
 
@@ -227,12 +227,20 @@ menu "Userland Tools"
 	help
 	  Option switches for Perf report.
 
-    config PERF_REPORT_FILE
+    config PERF_REPORT_FOLDER
 	depends on PERF_VIA_CQUATS
-	string "perf report output filename"
-	default "perf_report.txt"
+	string "perf report folder"
+	default "perf_reports"
 	help
-	  Specify the pathname to the output file for 'perf report'.
+	  Specify the pathname to the output folder for the perf report.
+	  NOTE- this Overrides the 'reports' folder CQuATS configuration setting.
+
+    config PERF_FLAME_GRAPH
+	depends on PERF_VIA_CQUATS
+	bool "Also generate a perf CPU \"flame graph\" SVG file"
+	help
+	  Generates a CPU "flame graph" SVG file; useful for visualizing very large
+	  stack traces. Details: http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html
   #endmenu    # Perf
 
 endmenu    # Profiling
