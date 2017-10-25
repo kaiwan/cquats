@@ -421,7 +421,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 		}
 		#local tapp=$(echo ${perf_target_app} |awk '{print $1}')
 		#which ${tapp} >/dev/null || 
-		[ -f "${perf_target_app}" ] || {
+		[ -f "${perf_target_app}" -o -f $(which ${perf_target_app}) ] || {
 		  wecho "[!] ${name}: perf: target app \"${perf_target_app}\" missing? aborting run ..."
 		  break
 		}
@@ -439,27 +439,29 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 
 		perf_check_proc_settings
 
-		# Generate a script to run target app, do perf record and perf report
-#cat > /tmp/.cquats_perf << @EOF@
+		### Generate a script to run target app, get it's PID and perform
+		### perf record and perf report on it.
+		### [Careful: escape the '$' if you want it in the script!]
 local perfrun=${gCQUATS_SCRATCH_FOLDER}/.cquats.perf.sh
 cat > ${perfrun} << @EOF@
 #!/bin/bash
 # CQuATS - temp perf record & report script
 echo "[+] ${name}: userland|profiling|-|perf:${perfrun}"
-echo "[+]  running perf target app now within xterm"
+echo "[+]  running perf target app \"${perf_target_app}\" now within xterm"
 xterm -e ${perf_target_app} &
 sleep 0.5
 
 i=1
 while [ true ]
 do
-  tpid=\$(pidof -s ${perf_target_app})
+  tpid=\$(pidof -s $(basename ${perf_target_app}))
+    # pidof -s :Single shot - this instructs the program to only return one pid
   [ ! -z "\${tpid}" ] && break
   sleep 0.5
   let i=i+1
-  [ $i -gt 5 ] && {
+  [ \$i -gt 5 ] && {
     echo "[!]  Whoops, could NOT get process pid, aborting perf record run.."
-    exit1
+    exit 1
   }
 done
 
@@ -472,6 +474,7 @@ ls -lh ${perf_report_path}
 exit 0
 # end
 @EOF@
+		###
 		chmod +x ${perfrun}
 	} || {   # via existing Script; we leave everything to the external script of course..
 		local tmp=$(check_config_foo_get_retval CONFIG_PERF_TARGET_SCRIPT)
@@ -501,7 +504,7 @@ exit 0
 	[ ! -z "${perf_target_app}" ] && {
 		gCmdArray[${gRow}]=${perfrun}
 		let gRow=gRow+1
-		gCmdArray[${gRow}]=""  #${perf_target_app}"                               # [5], # [6]
+		gCmdArray[${gRow}]=""                                 # [5], # [6]
 	} || {   # via existing Script
 		gCmdArray[${gRow}]="${perf_target_script}"                            # [5], # [6]
 		let gRow=gRow+1
@@ -606,7 +609,7 @@ do
     local tool_params="${gCmdArray[${k}]}"
 
 	local fmtstr="\
-+---[%2d of %2d]---------------------------------------+\n\
++---[ Job %2d of %2d ]---------------------------------------+\n\
 Space    : %s\n\
 Type     : %s\n\
 Suite    : %s\n\
@@ -628,15 +631,13 @@ if [ "${gCQUATS_DUMMY_RUN}" != "y" ] ; then
 	{
 	techo "[+] RUNNING: ${currItem} of ${total} ::
 ${cmd}"
-	#echolog "[+] RUNNING : ${currItem} of ${total} ::
-#${cmd}"
-	eval "${cmd}" 2>&1    # the actual cmd runs
+	eval "${cmd}" 2>&1    # the actual cmd runs, stdout & stderr tee'd to logfile
 	echolog "[+] ${cmd}: done."
 	} |tee --append ${LOGFILE_COMMON}
-	###
 else
-	iecho " [i] CONFIG_CQUATS_DUMMY_RUN is On, skipping actual run"
+	iecho " ### [i] CONFIG_CQUATS_DUMMY_RUN is On, skipping actual run ###"
 fi
+	###
 
 	[ $? -ne 0 ] && {
 		wecho "[!] Command \"${cmd}\" failed!"

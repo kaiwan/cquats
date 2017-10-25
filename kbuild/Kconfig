@@ -37,17 +37,18 @@ menu "CQuATS Configuration"
 
   config CQUATS_RUNCMD_PFX_UTIL_ARGS
   depends on CQUATS_RUNCMD_PFX_UTIL != ""
-	string "Arguments to the utility to prefix to the 'run command'"
+	string "Arguments to the utility to prefix to the 'run command' (above item)"
 	help
-	  Arguments to pass to the utility to prefix to the 'run command' (above) [default: time].
-	  Another could be args for perf; for eg.
-	  ('perf stat' with) args '--scale -d --big-num' .
+	  Arguments to pass to the utility to prefix to the 'run command' (above item)
+	   [default: time].
+	  As an example, the runcmd prefix could be 'perf stat' and it's args for eg.
+	   '--scale -d --big-num' .
 
   config CQUATS_DUMMY_RUN
-	bool "Don't actually run any tools, only show what will run"
+	bool "Dummy Mode: Don't actually run any tools, only show what will run"
 	help
-	  If turned On, CQuATS runs in "dummy ,ode", i.e., everything goes through
-	  except actually running selected tools. Useful for developers/testers
+	  If turned On, CQuATS runs in "dummy mode", i.e., everything goes through
+	  _except_ actually running selected tools. Useful for developers/testers
 	  [default: false]
 
   config CQUATS_DEBUG
@@ -190,7 +191,9 @@ menu "Userland Tools"
 	 help
 	  This is the target app with all parameters as required, that will be profiled
 	  by the Perf tool(s).
-	  TIP: do Not use metacharacters (like '~') in the pathname!
+	  TIPs:
+	   - compiling the target app with '-g' helps with symbol resolution
+	   - do Not use metacharacters (like '~') in the pathname!
 
     config PERF_TARGET_SCRIPT
 	depends on PERF_VIA_SCRIPT
@@ -242,7 +245,8 @@ endmenu    # Profiling
 	bool "InfoSec: FlawFinder"
 	default n
 	help
-	  Invoke the FlawFinder static analyser for security issues on the selected codebase.
+	  Invoke the FlawFinder static analyser for security issues on the
+	  selected codebase (the menu item TARGET_SRC_STATIC).
 	  Flawfinder examines C/C++ source code for security flaws.
 
     config FLAWFINDER_OPTS
