@@ -165,13 +165,18 @@ local REQD=$(echo "${rec}" |cut -d"=" -f2)
 check_config_foo_get_retval()
 {
 [ $# -ne 1 ] && echo ""
-echo "$1" |grep -q "^CONFIG_" || echo ""
+echo "$1" |grep -q "^CONFIG_" || {
+  echo ""
+  return
+}
 local rec=$(grep -w "$1" ${gTMPF_CONFIG})
-[ -z "${rec}" ] || echo ""
-local RETVAL=$(echo -n "${rec}" |cut -d"=" -f2- |tr '\n' '\0')
-	# TODO : newline '\n' still embedded inside RETVAL ??
+[ -z "${rec}" ] && {
+  echo ""
+  return
+}
+local RETVAL=$(echo -n "${rec}" |cut -d"=" -f2- |sed 's/\n//g')
 echo -n "${RETVAL}"
-} 2>/dev/null # end check_config_foo_get_retval()
+} #2>/dev/null # end check_config_foo_get_retval()
 
 
 #------- p e r f _ c h e c k _ p r o c _ s e t t i n g s --------------
@@ -228,8 +233,7 @@ report_progress
 #  for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
 #  do
 #
-#	local tmp=$(check_config_foo_get_retval CONFIG_FOO2)
-#	local whatever=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+#	local var_whatever=$(check_config_foo_get_retval CONFIG_FOO2)
 #   [...]
 
 #   # Setup the command array for this tool
@@ -272,10 +276,12 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
   for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
 
-	local tmp=$(check_config_foo_get_retval CONFIG_COCCINELLE_VERBOSE)
-	local cocciVerbose=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	local cocciVerbose=$(check_config_foo_get_retval CONFIG_COCCINELLE_VERBOSE)
+	#local tmp=$(check_config_foo_get_retval CONFIG_COCCINELLE_VERBOSE)
+	#local cocciVerbose=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	#decho "cocciVerbose=${cocciVerbose}"
 
-#   # Setup the command array for this tool
+    # Setup the command array for this tool
 	gCmdArray[${gRow}]="user-land"                                           # [0]
 	let gRow=gRow+1
 	gCmdArray[${gRow}]="static"                                              # [1]
@@ -328,8 +334,7 @@ check_if_config_foo_set CONFIG_VALGRIND_MEMCHECK # ret 0 if CONFIG_FOO is set
 #echo "ret=${?}"
 if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
 
-  local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_MEMCHECK_OPTS)
-  local vg_memcheck_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+  local vg_memcheck_opts=$(check_config_foo_get_retval CONFIG_VALGRIND_MEMCHECK_OPTS)
   #decho "vg_memcheck_opts=${vg_memcheck_opts}"
 
   for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
@@ -337,12 +342,10 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 	local app script
 
 	# Invoke via CQuATS or external Script?
-	local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_VIA_CQUATS)
-	local vg_via_cquats=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	local vg_via_cquats=$(check_config_foo_get_retval CONFIG_VALGRIND_VIA_CQUATS)
 	#Prompt "vg_via_cquats = $vg_via_cquats"
 	if [ "${vg_via_cquats}" = "y" ] ; then
-		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_APP)
-		local vg_target_app=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local vg_target_app=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_APP)
 		#Prompt "vg_target_app = $vg_target_app"
 		[ -z "${vg_target_app}" ] && {
 		  wecho "[!] ${name}: valgrind:memcheck: target app undefined (null)! aborting run ..."
@@ -355,8 +358,7 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 		}
 		decho "valgrind:memcheck: target app is \"${vg_target_app}\""
 	else                      # via existing Script
-		local tmp=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_SCRIPT)
-		local vg_target_script=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local vg_target_script=$(check_config_foo_get_retval CONFIG_VALGRIND_TARGET_SCRIPT)
 		[ -z "${vg_target_script}" ] && {
 		  wecho "[!] ${name}: valgrind:memcheck: target script undefined (null)! aborting run ..."
 		  break
@@ -408,37 +410,27 @@ if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_se
 	local app script
 
 	# Invoke via CQuATS or external Script?
-	local tmp=$(check_config_foo_get_retval CONFIG_PERF_VIA_CQUATS)
-	local perf_via_cquats=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+	local perf_via_cquats=$(check_config_foo_get_retval CONFIG_PERF_VIA_CQUATS)
 	#Prompt "perf_via_cquats = $perf_via_cquats"
 	[ "${perf_via_cquats}" = "y" ] && {
-		local tmp=$(check_config_foo_get_retval CONFIG_PERF_TARGET_APP)
-		local perf_target_app=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local perf_target_app=$(check_config_foo_get_retval CONFIG_PERF_TARGET_APP)
 		#Prompt "perf_target_app = $perf_target_app"
 		[ -z "${perf_target_app}" ] && {
 		  wecho "[!] ${name}: perf: target app undefined (null)! aborting run ..."
 		  break
 		}
-		#local tapp=$(echo ${perf_target_app} |awk '{print $1}')
-		#which ${tapp} >/dev/null || 
 		[ -f "${perf_target_app}" -o -f $(which ${perf_target_app}) ] || {
 		  wecho "[!] ${name}: perf: target app \"${perf_target_app}\" missing? aborting run ..."
 		  break
 		}
 		decho "perf: target app is \"${perf_target_app}\""
 
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_RECORD_OPTS)
-		local perf_record_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_RECORD_FILE)
-		local perf_record_file=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_REPORT_OPTS)
-		local perf_report_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_REPORT_FILE)
-		local perf_report_file=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_REPORT_FOLDER)
-		local perf_report_folder=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-		tmp=$(check_config_foo_get_retval CONFIG_PERF_FLAME_GRAPH)
-		local perf_flamegraph=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local perf_record_opts=$(check_config_foo_get_retval CONFIG_PERF_RECORD_OPTS)
+		local perf_record_file=$(check_config_foo_get_retval CONFIG_PERF_RECORD_FILE)
+		local perf_report_opts=$(check_config_foo_get_retval CONFIG_PERF_REPORT_OPTS)
+		local perf_report_file=$(check_config_foo_get_retval CONFIG_PERF_REPORT_FILE)
+		local perf_report_folder=$(check_config_foo_get_retval CONFIG_PERF_REPORT_FOLDER)
+		local perf_flamegraph=$(check_config_foo_get_retval CONFIG_PERF_FLAME_GRAPH)
 
 		perf_check_proc_settings
 
@@ -517,8 +509,7 @@ exit 0
 		###
 		chmod +x ${perfrun}
 	} || {   # via existing Script; we leave everything to the external script of course..
-		local tmp=$(check_config_foo_get_retval CONFIG_PERF_TARGET_SCRIPT)
-		local perf_target_script=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+		local perf_target_script=$(check_config_foo_get_retval CONFIG_PERF_TARGET_SCRIPT)
 		[ -z "${perf_target_script}" ] && {
 		  wecho "[!] ${name}: perf: target script undefined (null)! aborting run ..."
 		  break
@@ -564,8 +555,7 @@ check_if_config_foo_set CONFIG_FLAWFINDER # ret 0 if CONFIG_FOO is set
 #echo "ret=${?}"
 if [ $? -eq 0 ] ; then   # this 'if' Must immd follow the check_if_config_foo_set call
 
-  local tmp=$(check_config_foo_get_retval CONFIG_FLAWFINDER_OPTS)
-  local flawfinder_opts=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+  local flawfinder_opts=$(check_config_foo_get_retval CONFIG_FLAWFINDER_OPTS)
 
   for ii in 1  # loop just once; an artifact, so that we can use the 'break' :)
   do
@@ -649,6 +639,7 @@ do
     local tool_params="${gCmdArray[${k}]}"
 
 	local fmtstr="\
+
 +---[ Job %2d of %2d ]---------------------------------------+\n\
 Space    : %s\n\
 Type     : %s\n\
@@ -735,33 +726,36 @@ setup_config_vars()
 local tmp tmp2
 
 tmp=$(check_config_foo_get_retval CONFIG_CQUATS_DEBUG)
-tmp2=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-[ "${tmp2}" = "y" ] && DEBUG=1 || DEBUG=0
+[ "${tmp}" = "y" ] && DEBUG=1 || DEBUG=0
 
-tmp=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
-gTARGET_SRC_STATIC=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+gTARGET_SRC_STATIC=$(check_config_foo_get_retval CONFIG_TARGET_SRC_STATIC)
 decho "gTARGET_SRC_STATIC=${gTARGET_SRC_STATIC}"
-if [ -z "${gTARGET_SRC_STATIC}" -o ! -d "${gTARGET_SRC_STATIC}" ] ; then
-  wecho "[!] ${name}: the Target Source Tree location is either undefined (null) or an invalid folder!
+if [ -z "${gTARGET_SRC_STATIC}" ] ; then
+  wecho "[!] ${name}: the Target Source Tree location is undefined (null)!
+Several tools (coccinelle,sparse,flawfinder,etc) depend on having a target source tree
+to work upon. Pl set this value correctly in the 'menuconfig' and rerun."
+fi
+
+if [ ! -d ${gTARGET_SRC_STATIC} ] ; then
+  wecho "[!] ${name}: the Target Source Tree location is an invalid folder!
  [curr val=\"${gTARGET_SRC_STATIC}\"]
+
+TIP: do NOT use metacharacters like '~' in a pathname.
+
 Several tools (coccinelle,sparse,flawfinder,etc) depend on having a target source tree
 to work upon. Pl set this value correctly in the 'menuconfig' and rerun."
 fi
 
 gCQUATS_DUMMY_RUN=n
-tmp=$(check_config_foo_get_retval CONFIG_CQUATS_DUMMY_RUN)
-gCQUATS_DUMMY_RUN=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+gCQUATS_DUMMY_RUN=$(check_config_foo_get_retval CONFIG_CQUATS_DUMMY_RUN)
 #echo "gCQUATS_DUMMY_RUN=${gCQUATS_DUMMY_RUN}"
 
-tmp=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
-gCQUATS_REPORTS_FOLDER=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+gCQUATS_REPORTS_FOLDER=$(check_config_foo_get_retval CONFIG_CQUATS_REPORTS_FOLDER)
 mkdir -p ${gCQUATS_REPORTS_FOLDER} 2>/dev/null
 
 # run cmd prefix
-tmp=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL)
-gRUNCMD_PFX_UTIL=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
-tmp=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL_ARGS)
-gRUNCMD_PFX_UTIL_ARGS=$(echo "${tmp}" |tr '\n' '\0' 2>/dev/null)
+gRUNCMD_PFX_UTIL=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL)
+gRUNCMD_PFX_UTIL_ARGS=$(check_config_foo_get_retval CONFIG_CQUATS_RUNCMD_PFX_UTIL_ARGS)
 } # end setup_config_vars()
 
 #----------- s e t u p _ t m p _ c o n f i g --------------------------

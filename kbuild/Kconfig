@@ -187,13 +187,14 @@ menu "Userland Tools"
 
     config PERF_TARGET_APP
 	depends on PERF_VIA_CQUATS
-	 string "Enter full pathname and params, of the target application to be profiled"
+	 string "Enter pathname and params, of the target application to be profiled"
 	 help
 	  This is the target app pathname with all parameters as required, that
 	  will be profiled by the Perf tool(s).
 	  TIPS:
 	   - compiling the target app with '-g' helps with symbol resolution
 	   - do Not use metacharacters (like '~') in the pathname!
+	   - if the app is in the PATH, you could just pass the name of the app..
 
     config PERF_TARGET_SCRIPT
 	depends on PERF_VIA_SCRIPT
