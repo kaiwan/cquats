@@ -40,6 +40,7 @@ mkdir -p ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 TOOLS_LOC=${TOP}/tools
 TOOLS_STATIC=${TOOLS_LOC}/static
+TOOLS_PERF_FLMGR=${TOOLS_LOC}/perf/FlameGraph
 
 #---------Functions----------------------------------------------------
 LN="+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
