@@ -24,16 +24,21 @@ source ${PFX}/cquats_common.sh || {
  [ "${parent}" = "bash" ] && exit 1 || return 1
 } |tee -a ${LOGFILE_COMMON}
 
-{
-check_deps "make"  #perf spatch xterm"
-
-cd ${MENUDIR}
-echo "${gPRJ}:${name}: menu system loading, pl wait ..."
-#progress_wheel &
-#progpid=$!
+######### first time
+[ -f .first ] && {
+  cd kbuild || exit 1
+  # mconf is the binary executable used for the 'menuconfig' target
+  make distclean   #mrproper
+  rm -f scripts/kconfig/mconf ../.first
 } |tee -a ${LOGFILE_COMMON}
+#########
 
-make menuconfig 2>> ${LOGFILE_COMMON}
- # latest choices are in it's .config
-#kill ${progpid} >/dev/null 2>&1
+{
+check_deps "gcc make"  #perf spatch xterm"
+
+# Running the 'make menuconfig' in a subshell seems to help
+(cd ${MENUDIR} ; \
+echo "${gPRJ}:${name}: menu system loading, pl wait ..." ; make menuconfig )
+} #|tee -a ${LOGFILE_COMMON}
+
 exit 0
