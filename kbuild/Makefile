@@ -335,7 +335,7 @@ endif # $(dot-config)
 all: myapp
 
 
-objs-y		:= #main
+objs-y		:= #scripts  #main
 libs-y		:= #lib
 
 myapp-dirs	:= $(objs-y) $(libs-y)
