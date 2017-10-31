@@ -13,37 +13,37 @@
 # Ref: https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 # [Ans by Drew Noakes]
 #--- Foreground Colors
-fg_black() { tput setaf 0 
+fg_black() { tput setaf 0 2>/dev/null
 }
-fg_red() { tput setaf 1
+fg_red() { tput setaf 1 2>/dev/null
 }
-fg_green() { tput setaf 2 
+fg_green() { tput setaf 2 2>/dev/null
 }
-fg_yellow() { tput setaf 3
+fg_yellow() { tput setaf 3 2>/dev/null
 }
-fg_blue() { tput setaf 4
+fg_blue() { tput setaf 4 2>/dev/null
 }
-fg_magenta() { tput setaf 5
+fg_magenta() { tput setaf 5 2>/dev/null
 }
-fg_cyan() { tput setaf 6
+fg_cyan() { tput setaf 6 2>/dev/null
 }
-fg_white() { tput setaf 7
+fg_white() { tput setaf 7 2>/dev/null
 }
-fg_grey() { tput setaf 8
+fg_grey() { tput setaf 8 2>/dev/null
 }
  
 #--- Background Colors
-bg_white() { tput setab 7
+bg_white() { tput setab 7  2>/dev/null
 }
-bg_red() { tput setab 1
+bg_red() { tput setab 1  2>/dev/null
 }
-bg_green() { tput setab 2
+bg_green() { tput setab 2  2>/dev/null
 }
-bg_yellow() { tput setab 3
+bg_yellow() { tput setab 3  2>/dev/null
 }
-bg_blue() { tput setab 4
+bg_blue() { tput setab 4  2>/dev/null
 }
-bg_cyan() { tput setab 6
+bg_cyan() { tput setab 6  2>/dev/null
 }
 
 #--- Text Attributes  <-- NOK!
