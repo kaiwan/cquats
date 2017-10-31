@@ -23,6 +23,40 @@ source ${PFX}/color.sh || {
  exit 1
 }
 
+#---------- c h e c k _ d e p s ---------------------------------------
+# Checks passed packages - are they installed? (just using 'which';
+# using the pkg management utils (apt/dnf/etc) would be too time consuming)
+# Parameters:
+# [.. $@ ..] : space-sep string of all packages to check
+# Eg.        check_deps "make perf spatch xterm"
+check_deps()
+{
+local util needinstall=0
+report_progress
+
+for util in $@
+do
+ which ${util} > /dev/null 2>&1 || {
+   [ ${needinstall} -eq 0 ] && wecho "The following required utilit[y|ies] or package(s) do NOT seem to be installed:"
+   iecho "[!]  ${util}"
+   needinstall=1
+   continue
+ }
+done
+[ ${needinstall} -eq 1 ] && FatalError "Kindly first install the required package(s) and then retry, thanks. Aborting now..."
+
+# RELOOK
+[ 0 -eq 1 ] && {
+ # TODO - dpkg: assumes Ubuntu/Deb
+ # dpkg -l |grep -q libncurses5-dev 2>/dev/null || 
+ dnf list|grep -q -w "^ncurses-devel\.x86_64" || {    # on FC
+   FatalError "The ncurses-devel library and headers does not seem to be installed.
+(Required for kernel config UI).
+Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..."
+ }
+}
+} # end check_deps()
+
 # If we're not in a GUI (X Windows) display, abort (reqd for yad)
 check_gui()
 {
