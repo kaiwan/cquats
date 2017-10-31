@@ -10,7 +10,8 @@
 #------------------------------------------------------------------
 export TOPDIR=$(pwd)
 export VERBOSE_MSG=0
-#export DEBUG=1  #1
+export DEBUG=0  # Require a default value for DEBUG on startup, even though
+                # it's user configured from the menuconfig
 # Replace with log filename
 export LOGFILE_COMMON=${TOPDIR}/log_cquats.txt  #/dev/null
 export COLOR=1
