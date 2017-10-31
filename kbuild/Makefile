@@ -335,8 +335,8 @@ endif # $(dot-config)
 all: myapp
 
 
-objs-y		:= main
-libs-y		:= lib
+objs-y		:= #main
+libs-y		:= #lib
 
 myapp-dirs	:= $(objs-y) $(libs-y)
 myapp-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
