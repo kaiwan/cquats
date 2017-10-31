@@ -620,7 +620,7 @@ decho "gRow = ${gRow}"
 }
 
 let total=${gRow}/${gDim}
-wecho "${gInitMsg}"
+[ "${gCQUATS_DUMMY_RUN}" != "y" ] && wecho "${gInitMsg}"
 
 for ((i=0; i<${gRow}; i+=${gDim}))
 do
@@ -677,39 +677,6 @@ fi
 done
 } # end run_cmd()
 
-#---------- c h e c k _ d e p s ---------------------------------------
-# Checks passed packages - are they installed? (just using 'which';
-# using the pkg management utils (apt/dnf/etc) would be too time consuming)
-# Parameters:
-# [.. $@ ..] : space-sep string of all packages to check
-check_deps()
-{
-local util needinstall=0
-report_progress
-
-for util in $@
-do
- which ${util} > /dev/null 2>&1 || {
-   [ ${needinstall} -eq 0 ] && wecho "The following required utilit[y|ies] or package(s) do NOT seem to be installed:"
-   iecho "[!]  ${util}"
-   needinstall=1
-   continue
- }
-done
-[ ${needinstall} -eq 1 ] && FatalError "Kindly first install the required package(s) and then retry, thanks. Aborting now..."
-
-# RELOOK
-[ 0 -eq 1 ] && {
- # TODO - dpkg: assumes Ubuntu/Deb
- # dpkg -l |grep -q libncurses5-dev 2>/dev/null || 
- dnf list|grep -q -w "^ncurses-devel\.x86_64" || {    # on FC
-   FatalError "The ncurses-devel library and headers does not seem to be installed.
-(Required for kernel config UI).
-Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..."
- }
-}
-} # end check_deps()
-
 signal_trap()
 {
 report_progress
@@ -717,7 +684,7 @@ iecho "[!] ${name}: terminating due to signal interruption! (3)
 ${gLINE_END}"
 iecho "[i] Log: ${LOGFILE_COMMON}"
 exit 3
-}
+} # end signal_trap()
 
 #---------- s e t u p _ c o n f i g _ v a r s -------------------------
 # Parse required configs into our vars
@@ -808,7 +775,8 @@ build_cmd
   return
 }
 run_cmd
-iecho "[i] Log: ${LOGFILE_COMMON}"
+iecho "
+[i] Log: ${LOGFILE_COMMON}"
 } # end main()
 
 
