@@ -94,6 +94,33 @@ menu "Userland Tools"
 	  Invoke the sparse static analyser on the selected codebase.
 
  endmenu  # Static Analysis Tools
+
+ #=============================================
+ menu "InfoSec - Security Analysers"
+ depends on TARGET_SRC_STATIC != ""
+
+   config FLAWFINDER
+	bool "InfoSec: FlawFinder"
+	default n
+	help
+	  Invoke the FlawFinder static analyser for security issues on the
+	  selected codebase (the menu item TARGET_SRC_STATIC).
+	  Flawfinder examines C/C++ source code for security flaws.
+
+    config FLAWFINDER_OPTS
+	depends on FLAWFINDER
+	string "Flawfinder : Option switches"
+	default "--context --minlevel=2 --falsepositive"
+	help
+	  Option switches for the Flawfinder utility.
+
+#   config CHECKSEC
+#	bool "InfoSec: the checksec.sh script"
+#	default n
+#	help
+#	  Invoke the checksec bash script on the selected codebase.
+
+ endmenu  # InfoSec
  #======================================================================
 
  menu "Dynamic Analysis Tools | Valgrind Suite"
@@ -163,7 +190,6 @@ menu "Userland Tools"
  endmenu  # Dynamic Analysis Tools
  #======================================================================
 
- #======================================================================
  menu "Profiling"
 
     config PERF
@@ -246,32 +272,5 @@ menu "Userland Tools"
 
 endmenu    # Profiling
 
-
- #======================================================================
- menu "InfoSec - Security Analysers"
-
-   config FLAWFINDER
-	bool "InfoSec: FlawFinder"
-	default n
-	help
-	  Invoke the FlawFinder static analyser for security issues on the
-	  selected codebase (the menu item TARGET_SRC_STATIC).
-	  Flawfinder examines C/C++ source code for security flaws.
-
-    config FLAWFINDER_OPTS
-	depends on FLAWFINDER
-	string "Flawfinder : Option switches"
-	default "--context --minlevel=2 --falsepositive"
-	help
-	  Option switches for the Flawfinder utility.
-
-#   config CHECKSEC
-#	bool "InfoSec: the checksec.sh script"
-#	default n
-#	help
-#	  Invoke the checksec bash script on the selected codebase.
-
- endmenu  # InfoSec
- #======================================================================
 
 endmenu  # top-level
