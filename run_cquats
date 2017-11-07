@@ -457,10 +457,53 @@ ls -lh ${SVG}
 echo "View the above SVG file in your web browser to see the Flame Graph."
 } # end func gen_flamegraph_svg()
 
+setup_perf_folder()
+{
+# Setup 'reports/result' folder etc
+# .-reports
+#     |-perf_on_<app-name>
+#         <perf.data-out-file>, \${APP_OUT}, \$SVG
+export PDIR=${perf_report_folder}/perf_on_$(basename ${perf_target_app})_$(date +%d%b%Y_%H%M)
+mkdir -p \${PDIR} || {
+  echo "[!] CQuATS :: perf internal script: ERROR: creating report folder.
+Recheck that permission is okay and/or reset via 'menuconfig', and retry"
+  exit 1
+}
+export APP_OUT=\${PDIR}/$(basename ${perf_target_app})_output.txt
+export SVG=\${PDIR}/flamegraph_$(basename ${perf_target_app}).svg
+echo "PDIR = \${PDIR}
+APP_OUT=\${APP_OUT}
+SVG=\${SVG}"
+chown -R \${LOGNAME}:\${LOGNAME} ${perf_report_folder}
+}
+
 ### 'main'
+
+# CLI or GUI mode?
+CONSOLE_MODE=0
+xdpyinfo >/dev/null 2>&1 || CONSOLE_MODE=1
+# On FC 26, xdpyinfo fails when run as root; so lets do another check as well
+[ \$(id -u) -eq 0 ] && {
+   ps -e|egrep -w "X|Xorg|Xwayland" >/dev/null 2>&1 && CONSOLE_MODE=0 || CONSOLE_MODE=1
+}
+
+## Target app's stdout & stderr is redirected to the file \$APP_OUT
+## RELOOK :: BUT will that will cause disk IO & skew perf's work?
+## ???
+setup_perf_folder
 echo "[+] ${name}: userland|profiling|-|perf:${perfrun}"
-echo "[+]  running perf target app \"${perf_target_app}\" now within xterm"
-xterm -e ${perf_target_app} &
+echo -n "[+]  running perf target app \"${perf_target_app}\" now in "
+
+[ \${CONSOLE_MODE} -eq 1 ] && {
+  echo "console mode"
+  echo " [+] target app output logfile is \"\${APP_OUT}\""
+  bash -c "${perf_target_app} > \${APP_OUT} 2>&1" &
+} || {
+  echo "in xterm (gui mode)"
+  echo " [+] target app output logfile is \"\${APP_OUT}\""
+  xterm -e "${perf_target_app} > \${APP_OUT} 2>&1" &
+}
+
 sleep 0.5
 
 i=1 ; max=5
@@ -480,19 +523,6 @@ do
   }
 done
 
-# Setup 'reports/result' folder etc
-# .-reports
-#     |-perf_on_<app-name>
-#         <perf.data-out-file>, \$SVG
-export PDIR=${perf_report_folder}/perf_on_$(basename ${perf_target_app})_$(date +%d%b%Y_%H%M)
-mkdir -p \${PDIR} || {
-  echo "[!] CQuATS :: perf internal script: ERROR: creating report folder.
-Recheck that permission is okay and/or reset via 'menuconfig', and retry"
-  exit 1
-}
-export SVG=\${PDIR}/flamegraph_$(basename ${perf_target_app}).svg
-echo "PDIR = \${PDIR} SVG=\${SVG}"
-chown -R \${LOGNAME}:\${LOGNAME} ${perf_report_folder}
 cd \${PDIR}
 
 echo "[+] running perf record on target app PID \${tpid} now
