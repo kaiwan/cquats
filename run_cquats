@@ -786,7 +786,6 @@ which tput > /dev/null 2>&1 || {
 trap 'signal_trap' INT QUIT
 
 parent=$(ps -o comm= $PPID)
-check_deps "make perf spatch xterm"
 
 # Has the 'menuconfig' (iow, the 'make menuconfig') been done?
 [ ! -f ${CONFIG_FILE} ] && {
@@ -794,6 +793,11 @@ check_deps "make perf spatch xterm"
 program and selecting options accordingly from the menu. Aborting..."
    exit 1
 }
+# RELOOK at deps
+# eg. CentOS does not have coccinelle/spatch as a pkg..; so just issue a
+# Warning & continue perhaps?
+check_deps_fatal "make perf"
+check_deps_warn "spatch xterm"
 
 setup_tmp_config
 setup_config_vars

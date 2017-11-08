@@ -27,6 +27,8 @@ source ${PFX}/color.sh || {
 # Checks passed packages - are they installed? (just using 'which';
 # using the pkg management utils (apt/dnf/etc) would be too time consuming)
 # Parameters:
+#  $1 : 1 => fatal error, exit
+#       0 => warn only
 # [.. $@ ..] : space-sep string of all packages to check
 # Eg.        check_deps "make perf spatch xterm"
 check_deps()
@@ -34,16 +36,26 @@ check_deps()
 local util needinstall=0
 report_progress
 
+local severity=$1
+shift
+
 for util in $@
 do
  which ${util} > /dev/null 2>&1 || {
-   [ ${needinstall} -eq 0 ] && wecho "The following required utilit[y|ies] or package(s) do NOT seem to be installed:"
+   [ ${needinstall} -eq 0 ] && wecho "The following utilit[y|ies] or package(s) do NOT seem to be installed:"
    iecho "[!]  ${util}"
    needinstall=1
    continue
  }
 done
-[ ${needinstall} -eq 1 ] && FatalError "Kindly first install the required package(s) and then retry, thanks. Aborting now..."
+[ ${needinstall} -eq 1 ] && {
+   [ ${severity} -eq 1 ] && {
+      FatalError "Kindly first install the required package(s) shown above\
+and then retry, thanks. Aborting now..."
+   } || {
+      wecho "WARNING! The package(s) shown above are not present"
+   }
+}
 
 # RELOOK
 [ 0 -eq 1 ] && {
@@ -56,6 +68,21 @@ Pl install the ncurses-devel.x86_64 package (with dnf/yum) & re-run.  Aborting..
  }
 }
 } # end check_deps()
+
+# Simple wrappers over check_deps();
+# Recall, the fundamental theorem of software engineering FTSE:
+#  "We can solve any problem by introducing an extra level of indirection."
+#    -D Wheeler
+# ;-)
+check_deps_fatal()
+{
+check_deps 1 "$@"
+}
+
+check_deps_warn()
+{
+check_deps 0 "$@"
+}
 
 # If we're not in a GUI (X Windows) display, abort (reqd for yad)
 check_gui()
