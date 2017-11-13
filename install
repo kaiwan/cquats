@@ -57,7 +57,7 @@ done
 chown -R root:root ${INSTDIR}
 
 # Now delete the src files from here, the 'local' folder..
-for afile in "${LOVAL_FILES_DELETE[@]}"
+for afile in "${LOCAL_FILES_DELETE[@]}"
 do
   rm -f ${afile}
 done
