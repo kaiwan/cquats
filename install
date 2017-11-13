@@ -14,6 +14,7 @@ INSTDIR=/usr/share/cquats
 INST_DIRS=(kbuild tools)
 INST_FILES=(color.sh cquats_common.sh menuconfig README.md common.sh \
 err_common.sh LICENSE README_dev run_cquats)
+LOCAL_FILES_DELETE=(menuconfig run_cquats)
 
 [ $(id -u) -ne 0 ] && {
   echo "${name}: need root access to install CQuATS."
@@ -56,7 +57,7 @@ done
 chown -R root:root ${INSTDIR}
 
 # Now delete the src files from here, the 'local' folder..
-for afile in "${INST_FILES[@]}"
+for afile in "${LOVAL_FILES_DELETE[@]}"
 do
   rm -f ${afile}
 done
