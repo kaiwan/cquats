@@ -1,0 +1,74 @@
+#!/bin/bash
+# menuconfig
+# 
+# Quick Description:
+# Part of the CQUATS - C QA ToolSet - project
+# 
+# CQuATS Configuration Menu System.
+# Menu is based on the opensource Kbuild system;
+# initial template sourced from here:
+#  https://github.com/masahir0y/kbuild_skeleton
+# All credit to the original devs.
+#
+# Last Updated :
+# Created      : 20Sep2017
+# License: GPLv2
+name=$(basename $0)
+PFX=$(dirname $(which $0))
+source ${PFX}/common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
+ [ "${parent}" = "bash" ] && exit 1 || return 1
+} |tee -a ${LOGFILE_COMMON}
+source ${PFX}/cquats_common.sh || {
+ echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
+ [ "${parent}" = "bash" ] && exit 1 || return 1
+} |tee -a ${LOGFILE_COMMON}
+
+RUN_MSG_HOWTO="
+Now do:
+   ${LOCAL_INSTDIR}/menuconfig
+   ${LOCAL_INSTDIR}/run_cquats
+
+   -or just-
+
+   $(basename ${LOCAL_INSTDIR})/menuconfig
+   $(basename ${LOCAL_INSTDIR})/run_cquats
+ "
+#id
+#pwd
+
+######### first time
+#[ -f ${INSTDIR}/.first ] && {
+
+[ -d ${LOCAL_INSTDIR} ] && {
+becho "CQuATS :: Local Install (for user ${LOGNAME}) is already done ...
+${RUN_MSG_HOWTO}"
+  exit 1
+}
+
+{
+  becho "[+] CQuATS :: First run detected, setting up Local Install for user ${LOGNAME} now ..."
+  mkdir -p ${LOCAL_INSTDIR} ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
+
+  cp -a ${INSTDIR}/* ${LOCAL_INSTDIR}/
+  touch ${LOCAL_INSTDIR}/.first
+ # doesn't just work with the soft links..
+ #  ln -sf ${LOCAL_INSTDIR}/menuconfig
+ #  ln -sf ${LOCAL_INSTDIR}/run_cquats
+  becho "Done.
+${RUN_MSG_HOWTO}"
+  exit 0
+} |tee -a ${LOGFILE_COMMON}
+
+exit 0
+
+#[ -f ${INSTDIR}/.first ] && {
+  cd ${MENUDIR} || exit 1
+  #cd kbuild || exit 1
+  # mconf is the binary executable used for the 'menuconfig' target
+  make distclean   #mrproper
+  rm -f scripts/kconfig/mconf ../.first
+#} |tee -a ${LOGFILE_COMMON}
+#########
+
+exit 0
