@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure
+# menuconfig
 # 
 # Quick Description:
 # Part of the CQUATS - C QA ToolSet - project
@@ -14,31 +14,44 @@
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
-PFX=$(dirname `which $0`)
+PFX=$(dirname $(which $0))
 source ${PFX}/common.sh || {
  echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
  [ "${parent}" = "bash" ] && exit 1 || return 1
-}
+} |tee -a ${LOGFILE_COMMON}
 source ${PFX}/cquats_common.sh || {
  echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
  [ "${parent}" = "bash" ] && exit 1 || return 1
 } |tee -a ${LOGFILE_COMMON}
 
-######### first time
-[ -f .first ] && {
-  cd kbuild || exit 1
+id
+pwd
+
+###
+### We ASSUME that CQuATS is now installed in ~/<wherever>/.cquats
+### and is ready to run.
+### Implies that this script is now copied into the local location too...
+###
+
+### First local run
+[ -f ${LOCAL_INSTDIR}/.first ] && {
+  cd ${MENUDIR} || exit 1
+  #cd kbuild || exit 1
   # mconf is the binary executable used for the 'menuconfig' target
   make distclean   #mrproper
   rm -f scripts/kconfig/mconf ../.first
 } |tee -a ${LOGFILE_COMMON}
 #########
 
+
+### NOT the first local run
 {
 check_deps "gcc make"  #perf spatch xterm"
 
 # Running the 'make menuconfig' in a subshell seems to help
-(cd ${MENUDIR} ; \
-echo "${gPRJ}:${name}: menu system loading, pl wait ..." ; make menuconfig )
+cd ${MENUDIR}
+echo "${gPRJ}:${name}: menu system loading, pl wait ..."
+make menuconfig
 } #|tee -a ${LOGFILE_COMMON}
 
 exit 0

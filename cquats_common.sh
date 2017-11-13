@@ -29,16 +29,17 @@ gInitMsg=\
 @@@ (Also, this toolset works only on C source/header files, nothing else)     @@@
 "
 
+INSTDIR=/usr/share/cquats
 TOP=$(pwd)
-MENUDIR=${TOP}/kbuild
+LOCAL_INSTDIR=${TOP}/src    #dotcquats
+MENUDIR=${LOCAL_INSTDIR}/kbuild
 CONFIG_FILE=${MENUDIR}/.config
 
 # Setup the 'scratch' folder
 gCQUATS_SCRATCH_FOLDER=${TOP}/.scratch_cquats
-mkdir -p ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
 
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
-TOOLS_LOC=${TOP}/tools
+TOOLS_LOC=${LOCAL_INSTDIR}/tools
 TOOLS_STATIC=${TOOLS_LOC}/static
 TOOLS_PERF_FLMGR=${TOOLS_LOC}/perf/FlameGraph
 

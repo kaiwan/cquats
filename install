@@ -3,12 +3,8 @@
 # 
 # Quick Description:
 # Part of the CQUATS - C QA ToolSet - project
-# 
-# CQuATS Configuration Menu System.
-# Menu is based on the opensource Kbuild system;
-# initial template sourced from here:
-#  https://github.com/masahir0y/kbuild_skeleton
-# All credit to the original devs.
+# The stand-alone Install Part 1 - System Install - script;
+# installs CQuATS into /usr/share/cquats ..
 #
 # Last Updated : 13Nov2017
 # Created      : 20Sep2017
@@ -19,26 +15,29 @@ INST_DIRS=(kbuild tools)
 INST_FILES=(color.sh cquats_common.sh menuconfig README.md common.sh \
 err_common.sh LICENSE README_dev run_cquats)
 
-
 [ $(id -u) -ne 0 ] && {
   echo "${name}: need root access to install CQuATS."
   exit 1
 }
 
 [ -d ${INSTDIR} ] && {
-  echo "${name}: the CQuATS system seems to already be installed.
+  echo "${name}: the CQuATS system seems to ALREADY be installed.
+
   [FYI, here: ${INSTDIR} :
   $(ls -al ${INSTDIR})
   ]
-  Aborting install..."
-#  exit 1
+  Aborting install...
+  
+  Try now running the install_part2 program to install CQuATS for you \
+  (user ${LOGNAME})."
+  exit 1
 }
 
-echo "CQuATS installation proceeding ..."
+echo "CQuATS System Installation Part 1 - System Install - proceeding ..."
 mkdir -p ${INSTDIR}
 
 # Copy files across
-for afile in "${INST_FILES[@]}"
+for afile in "install* ${INST_FILES[@]}"
 do
   printf "%20s --> %s\n" ${afile} ${INSTDIR}
   cp -u ${afile} ${INSTDIR} || {
@@ -56,31 +55,16 @@ do
 done
 chown -R root:root ${INSTDIR}
 
+# Now delete the src files from here..
+rm -f ${INST_FILES}
+rm -rf ${INST_DIRS}
+
+#echo "logname=${LOGNAME} user=${USER}"
 #echo "${name}: install dir: ${INSTDIR}"
 #ls -l ${INSTDIR}
 
-echo "${name}: installation successful."
-exit 0
+echo "${name}: CQuATS Installation Part 1 (system) successful.
 
-
-
-
-
-######### first time
-[ -f .first ] && {
-  cd kbuild || exit 1
-  # mconf is the binary executable used for the 'menuconfig' target
-  make distclean   #mrproper
-  rm -f scripts/kconfig/mconf ../.first
-} |tee -a ${LOGFILE_COMMON}
-#########
-
-{
-check_deps "gcc make"  #perf spatch xterm"
-
-# Running the 'make menuconfig' in a subshell seems to help
-(cd ${MENUDIR} ; \
-echo "${gPRJ}:${name}: menu system loading, pl wait ..." ; make menuconfig )
-} #|tee -a ${LOGFILE_COMMON}
-
+Now pl run the install_part2 program to install CQuATS for you (user ${LOGNAME}).
+"
 exit 0

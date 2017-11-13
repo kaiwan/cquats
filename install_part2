@@ -25,7 +25,7 @@ source ${PFX}/cquats_common.sh || {
 } |tee -a ${LOGFILE_COMMON}
 
 RUN_MSG_HOWTO="
-Now do:
+To run CQuATS, do:
    ${LOCAL_INSTDIR}/menuconfig
    ${LOCAL_INSTDIR}/run_cquats
 

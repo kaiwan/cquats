@@ -793,11 +793,12 @@ parent=$(ps -o comm= $PPID)
 program and selecting options accordingly from the menu. Aborting..."
    exit 1
 }
-# RELOOK at deps
+
+# Make deps fatal/optional:
 # eg. CentOS does not have coccinelle/spatch as a pkg..; so just issue a
-# Warning & continue perhaps?
+# Warning & continue..
 check_deps_fatal "make perf"
-check_deps_warn "spatch xterm"
+check_deps_warn "spatch flawfinder xterm"
 
 setup_tmp_config
 setup_config_vars
