@@ -37,7 +37,7 @@ echo "CQuATS System Installation Part 1 - System Install - proceeding ..."
 mkdir -p ${INSTDIR}
 
 # Copy files across
-for afile in "install* ${INST_FILES[@]}"
+for afile in "install install_part2 ${INST_FILES[@]}"
 do
   printf "%20s --> %s\n" ${afile} ${INSTDIR}
   cp -u ${afile} ${INSTDIR} || {
@@ -55,9 +55,15 @@ do
 done
 chown -R root:root ${INSTDIR}
 
-# Now delete the src files from here..
-rm -f ${INST_FILES}
-rm -rf ${INST_DIRS}
+# Now delete the src files from here, the 'local' folder..
+for afile in "${INST_FILES[@]}"
+do
+  rm -f ${afile}
+done
+for afolder in "${INST_DIRS[@]}"
+do
+  rm -rf ${afolder}
+done
 
 #echo "logname=${LOGNAME} user=${USER}"
 #echo "${name}: install dir: ${INSTDIR}"
