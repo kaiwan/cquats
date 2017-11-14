@@ -17,15 +17,16 @@ name=$(basename $0)
 PFX=$(dirname `which $0`)
 source ${PFX}/common.sh || {
  echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
- [ "${parent}" = "bash" ] && exit 1 || return 1
+ exit 1
 }
 source ${PFX}/cquats_common.sh || {
  echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
- [ "${parent}" = "bash" ] && exit 1 || return 1
+ exit 1
 } |tee -a ${LOGFILE_COMMON}
 
 ######### first time
 [ -f .first ] && {
+  echo "${gPRJ} :: first-time-run :: mode: ${MODE}"
   cd kbuild || exit 1
   # mconf is the binary executable used for the 'menuconfig' target
   make distclean   #mrproper

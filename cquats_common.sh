@@ -29,6 +29,13 @@ gInitMsg=\
 @@@ (Also, this toolset works only on C source/header files, nothing else)     @@@
 "
 
+#------------------------------------------------------------------
+# CQuATS Mode :: GitHub Direct -OR- Distro Install
+# This branch 'master' has CQuATS in the "GitHub Direct" mode.
+# Use the 'reorg1' branch for CQuATS in the "Distro Install" mode.
+#------------------------------------------------------------------
+MODE="GITHUB_DIRECT"
+
 TOP=$(pwd)
 MENUDIR=${TOP}/kbuild
 CONFIG_FILE=${MENUDIR}/.config
