@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure
+# menuconfig
 # 
 # Quick Description:
 # Part of the CQUATS - C QA ToolSet - project
@@ -10,7 +10,7 @@
 #  https://github.com/masahir0y/kbuild_skeleton
 # All credit to the original devs.
 #
-# Last Updated :
+# Last Updated : 14Nov2017
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
