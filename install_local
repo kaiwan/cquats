@@ -15,16 +15,15 @@
 # License: GPLv2
 name=$(basename $0)
 PFX=$(dirname $(which $0))
-#source ${PFX}/common.sh || {
-# echo "${name}: fatal: could not source ${PFX}/common.sh , aborting..."
-# [ "${parent}" = "bash" ] && exit 1 || return 1
-#} |tee -a ${LOGFILE_COMMON}
 source ${PFX}/cquats_common.sh || {
  echo "${name}: fatal: could not source ${PFX}/cquats_common.sh , aborting..."
- [ "${parent}" = "bash" ] && exit 1 || return 1
+ exit 1
 } |tee -a ${LOGFILE_COMMON}
 
 RUN_MSG_HOWTO="
+CQuATS is locally installed here:
+${LOCAL_INSTDIR}
+
 To run CQuATS, do:
    ${LOCAL_INSTDIR}/menuconfig
    ${LOCAL_INSTDIR}/run_cquats
@@ -37,11 +36,14 @@ To run CQuATS, do:
 #id
 #pwd
 
-######### first time
-#[ -f ${INSTDIR}/.first ] && {
-
+[ ! -d ${INSTDIR} ] && {
+  echo "CQuATS :: System Install does not seem to be done.
+First proceed with the CQuATS system installation by running the \
+install_system script."
+  exit 1
+}
 [ -d ${LOCAL_INSTDIR} ] && {
-echo "CQuATS :: Local Install (for user ${LOGNAME}) is already done ...
+  echo "CQuATS :: Local Install (for user ${LOGNAME}) is already done ...
 ${RUN_MSG_HOWTO}"
   exit 1
 }
@@ -61,14 +63,3 @@ ${RUN_MSG_HOWTO}"
 } |tee -a ${LOGFILE_COMMON}
 
 exit 0
-
-##[ -f ${INSTDIR}/.first ] && {
-#  cd ${MENUDIR} || exit 1
-#  #cd kbuild || exit 1
-#  # mconf is the binary executable used for the 'menuconfig' target
-#  make distclean   #mrproper
-#  rm -f scripts/kconfig/mconf ../.first
-##} |tee -a ${LOGFILE_COMMON}
-#########
-
-#exit 0

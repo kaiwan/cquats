@@ -29,16 +29,16 @@ LOCAL_FILES_DELETE=(menuconfig run_cquats color.sh common.sh err_common.sh)
   ]
   Aborting install...
   
-  Try now running the install_part2 program to install CQuATS for you \
+  Try now running the install_local program to install CQuATS for you locally\
   (user ${LOGNAME})."
   exit 1
 }
 
-echo "CQuATS System Installation Part 1 - System Install - proceeding ..."
+echo "CQuATS Installation Part 1 - System Install - proceeding ..."
 mkdir -p ${INSTDIR}
 
 # Copy files across
-for afile in "install install_part2 ${INST_FILES[@]}"
+for afile in "install_system install_local ${INST_FILES[@]}"
 do
   printf "%20s --> %s\n" ${afile} ${INSTDIR}
   cp -u ${afile} ${INSTDIR} || {
@@ -70,8 +70,8 @@ done
 #echo "${name}: install dir: ${INSTDIR}"
 #ls -l ${INSTDIR}
 
-echo "${name}: CQuATS Installation Part 1 (system) successful.
+echo "${name}: CQuATS System Installation Part 1 successful.
 
-Now pl run the install_part2 program to install CQuATS for you (user ${LOGNAME}).
-"
+Now pl run the install_local program, as a regular user (not root), \
+to install CQuATS locally for you."
 exit 0

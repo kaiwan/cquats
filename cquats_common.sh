@@ -31,7 +31,7 @@ gInitMsg=\
 
 INSTDIR=/usr/share/cquats
 TOP=$(pwd)
-LOCAL_INSTDIR=${TOP}/src    #dotcquats
+LOCAL_INSTDIR=${TOP}/src
 MENUDIR=${LOCAL_INSTDIR}/kbuild
 CONFIG_FILE=${MENUDIR}/.config
 
