@@ -30,13 +30,12 @@ gInitMsg=\
 "
 
 INSTDIR=/usr/share/cquats
-TOP=$(pwd)
-LOCAL_INSTDIR=${TOP}/src
+LOCAL_INSTDIR=~/cquats
 MENUDIR=${LOCAL_INSTDIR}/kbuild
 CONFIG_FILE=${MENUDIR}/.config
 
 # Setup the 'scratch' folder
-gCQUATS_SCRATCH_FOLDER=${TOP}/.scratch_cquats
+gCQUATS_SCRATCH_FOLDER=${LOCAL_INSTDIR}/.scratch_cquats
 
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 TOOLS_LOC=${LOCAL_INSTDIR}/tools

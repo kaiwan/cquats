@@ -1,12 +1,12 @@
 #!/bin/bash
-# install
+# install_system
 # 
 # Quick Description:
 # Part of the CQUATS - C QA ToolSet - project
-# The stand-alone Install Part 1 - System Install - script;
+# The stand-alone System Install script;
 # installs CQuATS into /usr/share/cquats ..
 #
-# Last Updated : 13Nov2017
+# Last Updated : 14Nov2017
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
@@ -24,13 +24,11 @@ LOCAL_FILES_DELETE=(menuconfig run_cquats color.sh common.sh err_common.sh)
 [ -d ${INSTDIR} ] && {
   echo "${name}: the CQuATS system seems to ALREADY be installed.
 
-  [FYI, here: ${INSTDIR} :
-  $(ls -al ${INSTDIR})
-  ]
+  [FYI, over here: ${INSTDIR} ]
   Aborting install...
   
-  Try now running the install_local program to install CQuATS for you locally\
-  (user ${LOGNAME})."
+  Try running the install_local program to install CQuATS for you locally,\
+ as a regular user, not root."
   exit 1
 }
 

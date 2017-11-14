@@ -24,8 +24,8 @@ source ${PFX}/cquats_common.sh || {
  [ "${parent}" = "bash" ] && exit 1 || return 1
 } |tee -a ${LOGFILE_COMMON}
 
-id
-pwd
+#id
+#pwd
 
 ###
 ### We ASSUME that CQuATS is now installed in ~/<wherever>/.cquats

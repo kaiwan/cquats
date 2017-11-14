@@ -1,16 +1,11 @@
 #!/bin/bash
-# menuconfig
+# install_local
 # 
 # Quick Description:
 # Part of the CQUATS - C QA ToolSet - project
-# 
-# CQuATS Configuration Menu System.
-# Menu is based on the opensource Kbuild system;
-# initial template sourced from here:
-#  https://github.com/masahir0y/kbuild_skeleton
-# All credit to the original devs.
+#  The 'local' installer script.
 #
-# Last Updated :
+# Last Updated : 14Nov2017
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
@@ -24,18 +19,16 @@ RUN_MSG_HOWTO="
 CQuATS is locally installed here:
 ${LOCAL_INSTDIR}
 
-To run CQuATS, do:
-   ${LOCAL_INSTDIR}/menuconfig
-   ${LOCAL_INSTDIR}/run_cquats
+To run CQuATS, from a terminal window or shell, do:
+   cd ${LOCAL_INSTDIR}/
+   ./menuconfig
+   ./run_cquats
+"
 
-   -or just-
-
-   $(basename ${LOCAL_INSTDIR})/menuconfig
-   $(basename ${LOCAL_INSTDIR})/run_cquats
- "
-#id
-#pwd
-
+[ $(id -u) -eq 0 ] && {
+  echo "CQuATS :: Local Install should Not be done as root user, aborting..."
+  exit 1
+}
 [ ! -d ${INSTDIR} ] && {
   echo "CQuATS :: System Install does not seem to be done.
 First proceed with the CQuATS system installation by running the \
@@ -43,23 +36,22 @@ install_system script."
   exit 1
 }
 [ -d ${LOCAL_INSTDIR} ] && {
-  echo "CQuATS :: Local Install (for user ${LOGNAME}) is already done ...
+  echo "CQuATS :: Local Install (for user \"${LOGNAME}\") is already done ...
 ${RUN_MSG_HOWTO}"
   exit 1
 }
 
 {
-  echo "[+] CQuATS :: First run detected, setting up Local Install for user ${LOGNAME} now ..."
-  mkdir -p ${LOCAL_INSTDIR} ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
+  mkdir -p ${LOCAL_INSTDIR}
+  cd ${LOCAL_INSTDIR} || exit 1
+  echo "[+] CQuATS :: First run detected, setting up Local Install for user \"${LOGNAME}\" now ..."
+  mkdir -p ${gCQUATS_SCRATCH_FOLDER} 2>/dev/null
+  cp -a ${INSTDIR}/* .
+  touch .first
+  rm -f ${MENUDIR}/.config*
 
-  cp -a ${INSTDIR}/* ${LOCAL_INSTDIR}/
-  touch ${LOCAL_INSTDIR}/.first
- # doesn't just work with the soft links..
- #  ln -sf ${LOCAL_INSTDIR}/menuconfig
- #  ln -sf ${LOCAL_INSTDIR}/run_cquats
   echo "Done.
 ${RUN_MSG_HOWTO}"
   exit 0
 } |tee -a ${LOGFILE_COMMON}
-
 exit 0
