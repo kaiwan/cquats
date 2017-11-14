@@ -29,6 +29,13 @@ gInitMsg=\
 @@@ (Also, this toolset works only on C source/header files, nothing else)     @@@
 "
 
+#------------------------------------------------------------------
+# CQuATS Mode :: GitHub Direct -OR- Distro Install
+# This branch 'reorg1' has CQuATS in the "Distro Install" mode.
+# Use the 'master' branch for CQuATS in the "GitHub Direct" mode.
+#------------------------------------------------------------------
+MODE="DISTRO_INSTALL"
+
 INSTDIR=/usr/share/cquats
 LOCAL_INSTDIR=~/cquats
 MENUDIR=${LOCAL_INSTDIR}/kbuild
@@ -36,6 +43,7 @@ CONFIG_FILE=${MENUDIR}/.config
 
 # Setup the 'scratch' folder
 gCQUATS_SCRATCH_FOLDER=${LOCAL_INSTDIR}/.scratch_cquats
+#------------------------------------------------------------------
 
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
 TOOLS_LOC=${LOCAL_INSTDIR}/tools
