@@ -37,6 +37,8 @@ ccflags()
 ## when root does it show success (as the kbuild/ folder may be in a root-only
 ## writeable location (like /usr/...).
 tmp=/tmp/.lxdialog.tmp
+## [FWIW, I mentioned this here:
+##  https://www.linuxquestions.org/questions/showthread.php?p=5780875#post5780875 ]
 trap "rm -f $tmp" 0 1 2 3 15
 
 # Check if we can link to ncurses
