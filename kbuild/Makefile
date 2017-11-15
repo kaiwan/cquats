@@ -100,7 +100,14 @@ export srctree objtree VPATH
 
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 
-KCONFIG_CONFIG	?= .config
+#@echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@ UCONFDIR = $(UCONFDIR) @@@@@@@@@@@@@@@'
+
+#KCONFIG_CONFIG	?= .config
+# Redirect the .config output file to the invoking user's folder via
+# the UCONFDIR env var
+# So we expect this Makefile to be invoked as:
+#  UCONFDIR=<.../.../...> make menuconfig
+KCONFIG_CONFIG	?= $(UCONFDIR)/.config
 export KCONFIG_CONFIG
 
 # SHELL used by kbuild

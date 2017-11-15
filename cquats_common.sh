@@ -37,16 +37,18 @@ gInitMsg=\
 MODE="DISTRO_INSTALL"
 
 INSTDIR=/usr/share/cquats
-LOCAL_INSTDIR=~/cquats
-MENUDIR=${LOCAL_INSTDIR}/kbuild
-CONFIG_FILE=${MENUDIR}/.config
+#LOCAL_INSTDIR=~/cquats
+TOP=$(pwd)
+LOCAL_INSTDIR=${TOP}
+MENUDIR=${INSTDIR}/kbuild
 
 # Setup the 'scratch' folder
 gCQUATS_SCRATCH_FOLDER=${LOCAL_INSTDIR}/.scratch_cquats
 #------------------------------------------------------------------
 
+CONFIG_FILE=${LOCAL_INSTDIR}/.config
 gTMPF_CONFIG=${gCQUATS_SCRATCH_FOLDER}/.tmpconfig
-TOOLS_LOC=${LOCAL_INSTDIR}/tools
+TOOLS_LOC=${INSTDIR}/tools
 TOOLS_STATIC=${TOOLS_LOC}/static
 TOOLS_PERF_FLMGR=${TOOLS_LOC}/perf/FlameGraph
 

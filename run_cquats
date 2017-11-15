@@ -504,7 +504,7 @@ echo -n "[+]  running perf target app \"${perf_target_app}\" now in "
   xterm -e "${perf_target_app} > \${APP_OUT} 2>&1" &
 }
 
-sleep 0.5
+#sleep 0.5
 
 i=1 ; max=5
 while [ true ]
