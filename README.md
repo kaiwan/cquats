@@ -1,7 +1,5 @@
 # CQuATS - C Quality Assurance ToolSet project
 
-<test change fr br multiuser2>
-
 CQuATS is a management system that aims to collect heterogeneous code safety and security analysers/tools (primarily for 'C' code), bringing them together into a coherent, easy-to-use system. You can also think of it as an *"automation-UI"* kind of tool.
 
 It's primarily targeted at 'C' developers on Linux, with C++ code being supported too, to some extent. Essentially, CQuATS allows a developer to easily setup code analysis, etc tools to run over his/her code-base and/or  binaries.
