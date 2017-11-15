@@ -10,8 +10,8 @@
 #  https://github.com/masahir0y/kbuild_skeleton
 # All credit to the original devs.
 #
-# Last Updated :
-# Created      : 20Sep2017
+# Last Updated : 15Nov2017
+# Created      : 14Nov2017
 # License: GPLv2
 name=$(basename $0)
 PFX=$(dirname $(which $0))
@@ -28,15 +28,26 @@ source ${PFX}/cquats_common.sh || {
 #pwd
 
 ###
-### We ASSUME that CQuATS is now installed in ~/<wherever>/.cquats
+### We ASSUME that CQuATS is now installed in ${INSTDIR}/
 ### and is ready to run.
-### Implies that this script is now copied into the local location too...
 ###
 
 ### First local run
-#[ -f ${LOCAL_INSTDIR}/.first ] && {
 [ ! -d ${gCQUATS_SCRATCH_FOLDER} ] && {
   echo "[+] ${gPRJ} :: first-time-run detected :: mode: ${MODE}"
+  echo "
+Note: this folder - $(pwd) - will
+become your CQuATS Workspace. 
+ (Of course, you are free to setup multiple CQuATS workspaces by running this
+  program from different folders).
+
+Proceed? [y/N]
+"
+  read re
+  [ "${re}" != "y" -a "${re}" != "Y" ] && {
+    echo "CQuATS now aborting.."
+	exit 1
+  }
   mkdir -p ${gCQUATS_SCRATCH_FOLDER} #2>/dev/null
 
 [ 0 -eq 1 ] && {

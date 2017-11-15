@@ -12,9 +12,12 @@
 name=$(basename $0)
 INSTDIR=/usr/share/cquats
 INST_DIRS=(kbuild tools)
-INST_FILES=(color.sh cquats_common.sh menuconfig README.md common.sh \
+INST_FILES=(install_system color.sh cquats_common.sh menuconfig README.md common.sh \
 err_common.sh LICENSE README_dev run_cquats)
-LOCAL_FILES_DELETE=(menuconfig run_cquats color.sh common.sh err_common.sh)
+
+runMsg="Run CQuATS (as a regular user, not root) ::
+ ${INSTDIR}/menuconfig
+ ${INSTDIR}/run_cquats"
 
 [ $(id -u) -ne 0 ] && {
   echo "${name}: need root access to install CQuATS."
@@ -27,20 +30,21 @@ LOCAL_FILES_DELETE=(menuconfig run_cquats color.sh common.sh err_common.sh)
   [FYI, over here: ${INSTDIR} ]
   Aborting install...
   
-  Try running the install_local program to install CQuATS for you locally,\
- as a regular user, not root."
+${runMsg}"
   exit 1
 }
 
-echo "CQuATS Installation Part 1 - System Install - proceeding ..."
-mkdir -p ${INSTDIR}
+echo "CQuATS System Installation proceeding ..."
+mkdir -p ${INSTDIR} || exit 1
 
 # Copy files across
-for afile in "install_system install_local ${INST_FILES[@]}"
+for afile in "${INST_FILES[@]}"
 do
   printf "%20s --> %s\n" ${afile} ${INSTDIR}
   cp -u ${afile} ${INSTDIR} || {
-    echo "${name}: cp failed [status=$?], aborting..." ; exit 1
+    echo "${name}: cp failed [status=$?], rolling back the install and aborting..."
+	rm -rf ${INSTDIR}
+	exit 1
   }
 done
 
@@ -49,13 +53,15 @@ for afolder in "${INST_DIRS[@]}"
 do
   printf "%20s/ --> %s\n" ${afolder} ${INSTDIR}
   cp -au ${afolder} ${INSTDIR}/ || {
-    echo "${name}: cp failed [status=$?], aborting..." ; exit 1
+    echo "${name}: cp failed [status=$?], rolling back the install and aborting..."
+	rm -rf ${INSTDIR}
+	exit 1
   }
 done
 chown -R root:root ${INSTDIR}
 
-# Now delete the src files from here, the 'local' folder..
-for afile in "${LOCAL_FILES_DELETE[@]}"
+# Now delete the src files from here, the 'temp download' folder..
+for afile in "${INST_FILES[@]}"
 do
   rm -f ${afile}
 done
@@ -68,8 +74,8 @@ done
 #echo "${name}: install dir: ${INSTDIR}"
 #ls -l ${INSTDIR}
 
-echo "${name}: CQuATS System Installation Part 1 successful.
+echo "
+${name}: CQuATS System Installation successful.
 
-Now pl run the install_local program, as a regular user (not root), \
-to install CQuATS locally for you."
+${runMsg}"
 exit 0
