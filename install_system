@@ -6,14 +6,13 @@
 # The stand-alone System Install script;
 # installs CQuATS into /usr/share/cquats ..
 #
-# Last Updated : 14Nov2017
+# Last Updated : 15Nov2017
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
 INSTDIR=/usr/share/cquats
-INST_DIRS=(kbuild tools)
-INST_FILES=(install_system color.sh cquats_common.sh menuconfig README.md common.sh \
-err_common.sh LICENSE README_dev run_cquats)
+TARBALL=cquats.tar.xz
+CQUATS_SRC=src
 
 runMsg="Run CQuATS (as a regular user, not root) ::
  ${INSTDIR}/menuconfig
@@ -34,48 +33,27 @@ ${runMsg}"
   exit 1
 }
 
+[ $# -ne 1 ] && {
+  echo "Usage: ${name} pathname-to-cquats-tarball"
+  exit 1
+}
+[ ! -f $1 ] && {
+  echo "${name}: pathname-to-cquats-tarball \"$1\" invalid."
+  exit 1
+}
+
 echo "CQuATS System Installation proceeding ..."
 mkdir -p ${INSTDIR} || exit 1
 
-# Copy files across
-for afile in "${INST_FILES[@]}"
-do
-  printf "%20s --> %s\n" ${afile} ${INSTDIR}
-  cp -u ${afile} ${INSTDIR} || {
-    echo "${name}: cp failed [status=$?], rolling back the install and aborting..."
-	rm -rf ${INSTDIR}
-	exit 1
-  }
-done
+echo " [+] eXtracting tarball \"$1\" into \"${INSTDIR}\" now ..."
+tar xf ${1} -C ${INSTDIR}/ || {
+  echo "Oops! extraction failed" ; exit 1
+}
+chown -R root:root ${INSTDIR}/
 
-# Copy folders across
-for afolder in "${INST_DIRS[@]}"
-do
-  printf "%20s/ --> %s\n" ${afolder} ${INSTDIR}
-  cp -au ${afolder} ${INSTDIR}/ || {
-    echo "${name}: cp failed [status=$?], rolling back the install and aborting..."
-	rm -rf ${INSTDIR}
-	exit 1
-  }
-done
-chown -R root:root ${INSTDIR}
-
-# Now delete the src files from here, the 'temp download' folder..
-for afile in "${INST_FILES[@]}"
-do
-  rm -f ${afile}
-done
-for afolder in "${INST_DIRS[@]}"
-do
-  rm -rf ${afolder}
-done
-
-#echo "logname=${LOGNAME} user=${USER}"
-#echo "${name}: install dir: ${INSTDIR}"
-#ls -l ${INSTDIR}
-
-echo "
+echo " and done.
 ${name}: CQuATS System Installation successful.
 
 ${runMsg}"
+
 exit 0
