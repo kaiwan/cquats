@@ -38,11 +38,15 @@ source ${PFX}/cquats_common.sh || {
 [ ! -d ${gCQUATS_SCRATCH_FOLDER} ] && {
   echo "[+] ${gPRJ} :: first-time-run detected :: mode: ${MODE}"
   mkdir -p ${gCQUATS_SCRATCH_FOLDER} #2>/dev/null
+
+[ 0 -eq 1 ] && {
   cd ${MENUDIR} || exit 1
   #cd kbuild || exit 1
   # mconf is the binary executable used for the 'menuconfig' target
+  rm -f ${MENUDIR}/.config*
   make distclean   #mrproper
-  rm -f scripts/kconfig/mconf ../.first
+  rm -f scripts/kconfig/mconf #../.first
+}
 } |tee -a ${LOGFILE_COMMON}
 #########
 
