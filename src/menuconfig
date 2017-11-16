@@ -50,13 +50,13 @@ UCONFDIR=${LOCAL_INSTDIR} make menuconfig
 ### First local run?
 if [ ! -d ${gCQUATS_SCRATCH_FOLDER} ] ; then
   echo "[+] ${gPRJ} :: first-time-run detected :: mode: ${MODE}"
-  echo "
+  echo -n "
 Note: this folder - $(pwd) - will
 become your CQuATS Workspace. 
  (Of course, you are free to setup multiple CQuATS workspaces by running this
   program from different folders).
 
-Proceed? [y/N] "
+Proceed? [y/N] : "
   read re
   [ "${re}" != "y" -a "${re}" != "Y" ] && {
     echo "CQuATS now aborting.."

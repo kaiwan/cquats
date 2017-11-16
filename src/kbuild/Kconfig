@@ -24,8 +24,7 @@ menu "CQuATS Configuration"
 	  TIP: do Not use metacharacters (like '~') in the pathname!
 
   config CQUATS_RUNCMD_PFX_UTIL
-	string "Utility to prefix to the 'run command' !CAREFUL! (see Help)
-	 [default: time]"
+	string "Utility to prefix to the 'run command' !CAREFUL! (see Help)  [default: time]"
 	default "time"
 	help
 	  Utility to prefix to the 'run command' [default: time]. 

@@ -18,7 +18,13 @@ gconfig: $(obj)/gconf
 	$< $(Kconfig)
 
 menuconfig: $(obj)/mconf
+ifneq ($(CQ_INST),)          # CQ_INST is 1 during CQuATS install_prep
+	@echo "** CQuATS Install Prep **"
+	date
+else                         # undefined otherwise; so invoke 'mconf Kconfig'
+                             # which gets the ncurses menu up & running!
 	$< $(Kconfig)
+endif
 
 config: $(obj)/conf
 	$< --oldaskconfig $(Kconfig)

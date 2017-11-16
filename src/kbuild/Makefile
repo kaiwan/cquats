@@ -100,8 +100,7 @@ export srctree objtree VPATH
 
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 
-#@echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@ UCONFDIR = $(UCONFDIR) @@@@@@@@@@@@@@@'
-
+## CQuATS :
 #KCONFIG_CONFIG	?= .config
 # Redirect the .config output file to the invoking user's folder via
 # the UCONFDIR env var
