@@ -1,7 +1,10 @@
 #!/bin/bash
-# cr8_cquats_tarxz.sh
+# install_cquats
 # 
-# Last Updated :
+# The CQuATS framework 'distro' installer script.
+# Currently tested on Fedora 26 only.
+#
+# Last Updated : 16Nov2017
 # Created      :
 # 
 # Author:
@@ -12,29 +15,57 @@
 # GPLv2.
 # 
 name=$(basename $0)
-CQUATS_SRC=/home/kai/cquats/src
+CQUATS_TAR=cquats.tar.xz
+INSTDIR=/usr/share/cquats
 
 tarit()
 {
 echo "[+] tar-ring now ..."
 tar cJf $1 --directory=${CQUATS_SRC}/ . || {
+  # (c)reate (J)xz-compression (f)iles-follow
   echo "Oops!" ; exit 1
 }
 ls -lh $1
-  # (c)reate (J)xz-compression (f)iles-follow
 }
 
 
 ##### 'main' : execution starts here #####
 
 [ $# -ne 1 ] && {
-  echo "Usage: ${name} create-pathname-cquats.tar.xz"
+  echo "Usage: ${name} cquats-source-folder"
   exit 1
 }
+[ ! -d $1 ] && {
+  echo "${name}: cquats-source-folder \"$1\" invalid."
+  exit 1
+}
+CQUATS_SRC=$1
+
+[ -d ${INSTDIR} ] && {
+  echo "${name}: the CQuATS system seems to ALREADY be installed.
+
+  [FYI, over here: ${INSTDIR} ]
+  Aborting install...
+
+${runMsg}"
+  exit 1
+}
+
+## Build deps: <- Check
+#   gcc, ncurses-devel
+which gcc >/dev/null || {
+  echo "${name}: 'gcc' package required, pl install and retry..."
+  exit 1
+}
+rpm -qa|grep ncurses-devel >/dev/null || {
+  echo "${name}: 'ncurses-devel' package required, pl install and retry..."
+  exit 1
+}
+
 cd ${CQUATS_SRC}/kbuild
+
 # mconf is the binary executable used for the 'menuconfig' target
 rm -f .config*
-
 make distclean
 rm -f scripts/kconfig/mconf
 
@@ -51,6 +82,9 @@ CQ_INST=1 UCONFDIR=. make V=1 menuconfig
 
 cd - >/dev/null
 
-tarit $1
+tarit ${CQUATS_TAR}
+
+# Now for the 2nd part of the Install...
+sudo ./install2 ${CQUATS_TAR}
 
 exit 0

@@ -1,18 +1,18 @@
 #!/bin/bash
-# install_system
+# install2
 # 
 # Quick Description:
+# Part 2 of the CQuATS framework install.
+# Must be invoked by the first part, i.e., install_cquats .
+#
 # Part of the CQUATS - C QA ToolSet - project
-# The stand-alone System Install script;
 # installs CQuATS into /usr/share/cquats ..
 #
-# Last Updated : 15Nov2017
+# Last Updated : 16Nov2017
 # Created      : 20Sep2017
 # License: GPLv2
 name=$(basename $0)
 INSTDIR=/usr/share/cquats
-TARBALL=cquats.tar.xz
-CQUATS_SRC=src
 
 runMsg="Run CQuATS (as a regular user, not root) ::
  ${INSTDIR}/menuconfig
