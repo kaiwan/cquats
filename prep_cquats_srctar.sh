@@ -5,6 +5,7 @@ CQSRC=src/
 CQTAR=cquats_src.tar.xz
 
 ## clean up kbuild/
+echo "[+] clean up folder \"${CQSRC}/kbuild\" ..."
 cd ${CQSRC}/kbuild
 rm -f .config* .tmpconfig*
 make distclean
@@ -13,7 +14,7 @@ rm -f scripts/kconfig/mconf
 cd - >/dev/null
 
 echo "[+] tar-ring folder \"${CQSRC}\" to \"${CQTAR}\" now ..."
-tar cJf ${CQTAR} --directory=${CQSRC}/ . || {
+tar cJf ${CQTAR} install_cquats ${CQSRC}/ || {
   # (c)reate (J)xz-compression (f)iles-follow
   echo "Oops! tar cJf failed" ; exit 1
 }
