@@ -23,7 +23,7 @@ tarit()
 echo "[+] tar-ring now ..."
 tar cJf $1 --directory=${CQUATS_SRC}/ . || {
   # (c)reate (J)xz-compression (f)iles-follow
-  echo "Oops!" ; exit 1
+  echo "Oops! tar cJf failed" ; exit 1
 }
 ls -lh $1
 }
@@ -31,6 +31,16 @@ ls -lh $1
 
 ##### 'main' : execution starts here #####
 
+INSTDIR=/usr/share/cquats
+
+runMsg="Run CQuATS (as a regular user, not root) ::
+ ${INSTDIR}/menuconfig
+ ${INSTDIR}/run_cquats"
+
+[ $(id -u) -ne 0 ] && {
+  echo "${name}: need root to install CQuATS."
+  exit 1
+}
 [ $# -ne 1 ] && {
   echo "Usage: ${name} cquats-source-folder"
   exit 1
@@ -78,13 +88,24 @@ rm -f scripts/kconfig/mconf
 # b) UCONFDIR : set to the location where it can find the .config file
 #     Makefile loc: kbuild/Makefile
 echo "[+] Build kconfig :: CQ_INST=1 UCONFDIR=. make V=1"
-CQ_INST=1 UCONFDIR=. make V=1 menuconfig
+CQ_INST=1 UCONFDIR=. make menuconfig
 
 cd - >/dev/null
 
 tarit ${CQUATS_TAR}
 
 # Now for the 2nd part of the Install...
-sudo ./install2 ${CQUATS_TAR}
+echo "[+] CQuATS System Installation proceeding ..."
+mkdir -p ${INSTDIR} || exit 1
 
+echo " [+] eXtracting tarball \"${CQUATS_TAR}\" into \"${INSTDIR}\" now ..."
+tar xf ${CQUATS_TAR} -C ${INSTDIR}/ || {
+  echo "Oops! extraction failed" ; exit 1
+}
+chown -R root:root ${INSTDIR}/
+
+echo " and done.
+${name}: CQuATS System Installation successful.
+
+${runMsg}"
 exit 0
