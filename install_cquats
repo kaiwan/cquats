@@ -31,8 +31,6 @@ ls -lh $1
 
 ##### 'main' : execution starts here #####
 
-INSTDIR=/usr/share/cquats
-
 runMsg="Run CQuATS (as a regular user, not root) ::
  ${INSTDIR}/menuconfig
  ${INSTDIR}/run_cquats"
@@ -74,9 +72,10 @@ rpm -qa|grep ncurses-devel >/dev/null || {
 
 cd ${CQUATS_SRC}/kbuild
 
-# mconf is the binary executable used for the 'menuconfig' target
-rm -f .config*
+## clean up kbuild/
+rm -f .config* .tmpconfig*
 make distclean
+# mconf is the binary executable used for the 'menuconfig' target
 rm -f scripts/kconfig/mconf
 
 # Use env vars to figure out:
